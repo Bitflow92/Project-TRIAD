@@ -1,0 +1,1 @@
+document.querySelectorAll('input, textarea').forEach((el, idx) => { const key = location.pathname + ':field:' + idx; const saved = localStorage.getItem(key); if (saved !== null) { if (el.type === 'checkbox') el.checked = saved === 'true'; else el.value = saved;} el.addEventListener('input', () => { localStorage.setItem(key, el.type === 'checkbox' ? el.checked : el.value); }); });
