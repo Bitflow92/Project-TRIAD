@@ -7,6 +7,10 @@
     --green: #6abf40;
     --orange: #ff7a1a;
     --border: #d8e0ec;
+    --danger: #c2410c;
+    --warning-bg: #fff8e8;
+    --success-bg: #ecfdf3;
+    --info-bg: #eff6ff;
 }
 
 body {
@@ -82,10 +86,10 @@ main {
 .card,
 .exercise-card {
     background: white;
-    border-radius: 18px;
+    border-radius: 22px;
     padding: 20px;
     border: 1px solid var(--border);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
 .card {
@@ -137,19 +141,20 @@ main {
 
 .exercise-list {
     display: grid;
-    gap: 22px;
+    gap: 26px;
 }
 
 .exercise-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
 }
 
 .exercise-header h2 {
     color: var(--blue);
-    margin-top: 0;
+    margin: 0;
+    font-size: 28px;
 }
 
 .exercise-header span {
@@ -161,14 +166,73 @@ main {
     white-space: nowrap;
 }
 
+.subtle {
+    color: var(--muted);
+    margin: 4px 0 0 0;
+}
+
 .exercise-image {
     width: 100%;
     max-height: 340px;
     object-fit: contain;
-    border-radius: 16px;
-    margin: 12px 0 16px 0;
+    border-radius: 18px;
+    margin: 16px 0;
     border: 1px solid var(--border);
     background: #f4f7fb;
+}
+
+.exercise-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.summary-pill {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+}
+
+.summary-pill small {
+    display: block;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+.summary-pill strong {
+    color: var(--navy);
+}
+
+.recommendation {
+    padding: 14px;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    border-left: 5px solid var(--blue);
+    background: var(--info-bg);
+}
+
+.recommendation p {
+    margin-bottom: 0;
+}
+
+.recommendation.increase {
+    background: var(--success-bg);
+    border-left-color: var(--green);
+}
+
+.recommendation.repeat {
+    background: var(--warning-bg);
+    border-left-color: var(--orange);
+}
+
+.recommendation.start {
+    background: var(--info-bg);
+    border-left-color: var(--blue);
 }
 
 .exercise-meta {
@@ -190,7 +254,7 @@ main {
 }
 
 .mistakes {
-    background: #fff8e8;
+    background: var(--warning-bg);
     border-left: 4px solid #ffb020;
     padding: 12px 14px;
     border-radius: 12px;
@@ -199,6 +263,23 @@ main {
 
 .mistakes ul {
     margin-bottom: 0;
+}
+
+.history-box {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+.history-table-wrap {
+    overflow-x: auto;
+    margin-top: 8px;
+}
+
+.history-table {
+    font-size: 14px;
 }
 
 .set-grid {
@@ -276,7 +357,6 @@ footer {
     }
 
     .exercise-header {
-        align-items: flex-start;
         flex-direction: column;
     }
 
