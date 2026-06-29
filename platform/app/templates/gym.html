@@ -31,6 +31,14 @@
             <span>Session {{ ex.session }}</span>
         </div>
 
+        <div class="progress-badges">
+            <span class="progress-badge pb-badge">PB: {{ ex.personal_best.label }}</span>
+            <span class="progress-badge">Last session: {{ ex.previous_summary.date if ex.previous_summary else "No history yet" }}</span>
+            <span class="progress-badge recommendation-badge {{ ex.recommendation.status }}">
+                {{ ex.recommendation.status|capitalize }}
+            </span>
+        </div>
+
         {% if ex.image %}
         <img class="exercise-image" src="{{ url_for('static', filename=ex.image) }}" alt="{{ ex.name }}">
         {% endif %}
@@ -76,6 +84,18 @@
 
         {% if ex.history %}
         <div class="history-box">
+            {% if ex.previous_summary %}
+            <div class="previous-summary">
+                <strong>Previous session summary</strong>
+                <div class="previous-summary-grid">
+                    <span><small>Date</small>{{ ex.previous_summary.date }}</span>
+                    <span><small>Best weight</small>{{ ex.previous_summary.best_weight }}</span>
+                    <span><small>Sets</small>{{ ex.previous_summary.total_sets }}</span>
+                    <span><small>Avg reps</small>{{ ex.previous_summary.avg_reps }}</span>
+                    <span><small>Avg RPE</small>{{ ex.previous_summary.avg_rpe }}</span>
+                </div>
+            </div>
+            {% endif %}
             <strong>Recent history</strong>
             <div class="history-table-wrap">
                 <table class="history-table">
@@ -101,6 +121,11 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+        {% else %}
+        <div class="history-box empty-history">
+            <strong>No previous history yet</strong>
+            <p>Log your first clean set here and TRIAD will start building your progress picture.</p>
         </div>
         {% endif %}
 

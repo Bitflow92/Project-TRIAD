@@ -4,6 +4,7 @@ from datetime import datetime
 import csv
 import io
 import os
+import re
 
 app = Flask(__name__)
 DB = "/instance/triad.db"
@@ -309,6 +310,136 @@ def get_recent_history(exercise_name, limit=3):
     return [dict(r) for r in rows]
 
 
+def parse_numeric_weight(weight):
+    if weight is None:
+        return None
+
+    match = re.fullmatch(r"\s*(\d+(?:\.\d+)?)\s*(?:kg)?\s*", str(weight), re.IGNORECASE)
+    if not match:
+        return None
+
+    return float(match.group(1))
+
+
+def parse_float(value):
+    if value is None or value == "":
+        return None
+
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def format_number(value):
+    if value is None:
+        return "N/A"
+
+    if float(value).is_integer():
+        return str(int(value))
+
+    return f"{value:.1f}"
+
+
+def get_dashboard_data():
+    with sqlite3.connect(DB) as con:
+        con.row_factory = sqlite3.Row
+        stats = con.execute("""
+        SELECT
+            COUNT(*) AS total_sets,
+            COUNT(DISTINCT exercise) AS exercises_logged,
+            MAX(created_at) AS last_workout
+        FROM exercise_logs
+        """).fetchone()
+
+        most_logged = con.execute("""
+        SELECT exercise, COUNT(*) AS logged_sets
+        FROM exercise_logs
+        GROUP BY exercise
+        ORDER BY logged_sets DESC, exercise ASC
+        LIMIT 1
+        """).fetchone()
+
+        latest = con.execute("""
+        SELECT session
+        FROM exercise_logs
+        ORDER BY id DESC
+        LIMIT 1
+        """).fetchone()
+
+    latest_session = latest["session"] if latest else None
+    suggested_session = "B" if latest_session == "A" else "A"
+
+    return {
+        "total_sets": stats["total_sets"],
+        "exercises_logged": stats["exercises_logged"],
+        "last_workout": stats["last_workout"][:10] if stats["last_workout"] else "No workouts yet",
+        "most_logged_exercise": most_logged["exercise"] if most_logged else "No entries yet",
+        "most_logged_sets": most_logged["logged_sets"] if most_logged else 0,
+        "suggested_session": suggested_session,
+        "suggested_label": f"Session {suggested_session}",
+        "suggested_href": f"/gym?session={suggested_session}",
+    }
+
+
+def get_personal_best(exercise_name):
+    with sqlite3.connect(DB) as con:
+        rows = con.execute("""
+        SELECT weight
+        FROM exercise_logs
+        WHERE exercise = ?
+        """, (exercise_name,)).fetchall()
+
+    best = None
+    for row in rows:
+        numeric_weight = parse_numeric_weight(row[0])
+        if numeric_weight is not None and (best is None or numeric_weight > best):
+            best = numeric_weight
+
+    return {
+        "value": best,
+        "label": f"{format_number(best)} kg" if best is not None else "No numeric PB yet",
+    }
+
+
+def get_previous_session_summary(exercise_name):
+    with sqlite3.connect(DB) as con:
+        con.row_factory = sqlite3.Row
+        latest = con.execute("""
+        SELECT substr(created_at, 1, 10) AS workout_date
+        FROM exercise_logs
+        WHERE exercise = ?
+        ORDER BY id DESC
+        LIMIT 1
+        """, (exercise_name,)).fetchone()
+
+        if not latest:
+            return None
+
+        rows = con.execute("""
+        SELECT created_at, weight, reps, rpe
+        FROM exercise_logs
+        WHERE exercise = ?
+          AND substr(created_at, 1, 10) = ?
+        ORDER BY id ASC
+        """, (exercise_name, latest["workout_date"])).fetchall()
+
+    weights = [parse_numeric_weight(r["weight"]) for r in rows]
+    numeric_weights = [w for w in weights if w is not None]
+    reps = [parse_float(r["reps"]) for r in rows]
+    numeric_reps = [r for r in reps if r is not None]
+    rpes = [parse_float(r["rpe"]) for r in rows]
+    numeric_rpes = [r for r in rpes if r is not None]
+
+    return {
+        "date": latest["workout_date"],
+        "best_weight": f"{format_number(max(numeric_weights))} kg" if numeric_weights else "No numeric weight",
+        "total_sets": len(rows),
+        "avg_reps": format_number(sum(numeric_reps) / len(numeric_reps)) if numeric_reps else "N/A",
+        "avg_rpe": format_number(sum(numeric_rpes) / len(numeric_rpes)) if numeric_rpes else "N/A",
+    }
+
+
 def get_recommendation(exercise):
     rows = get_recent_history(exercise["name"], limit=1)
 
@@ -325,36 +456,55 @@ def get_recommendation(exercise):
 
     if not isinstance(target_reps, int):
         return {
-            "status": "repeat",
-            "message": "Repeat the current target and focus on clean form."
+            "status": "unclear",
+            "message": "Repeat the current weight and log reps/RPE clearly next time."
         }
 
-    try:
-        reps_ok = all(int(r["reps"]) >= target_reps for r in latest_rows if r["reps"])
-        rpe_values = [float(r["rpe"]) for r in latest_rows if r["rpe"]]
-        avg_rpe = sum(rpe_values) / len(rpe_values) if rpe_values else 10
-        sets_ok = len(latest_rows) >= exercise["sets"]
-    except ValueError:
+    reps = [parse_float(r["reps"]) for r in latest_rows]
+    rpe_values = [parse_float(r["rpe"]) for r in latest_rows]
+
+    if any(r is None for r in reps) or any(r is None for r in rpe_values):
         return {
-            "status": "repeat",
-            "message": "Repeat the current weight until reps and RPE are logged clearly."
+            "status": "unclear",
+            "message": "Repeat the current weight and log reps/RPE clearly next time."
         }
 
-    if sets_ok and reps_ok and avg_rpe <= 8:
+    if len(latest_rows) < exercise["sets"]:
+        return {
+            "status": "incomplete",
+            "message": "Complete all prescribed sets before increasing weight."
+        }
+
+    reps_ok = all(r >= target_reps for r in reps)
+    avg_rpe = sum(rpe_values) / len(rpe_values)
+
+    if reps_ok and avg_rpe <= 8:
         return {
             "status": "increase",
             "message": "Consider a small increase next session, provided technique remains controlled."
         }
 
+    if avg_rpe > 8:
+        return {
+            "status": "repeat",
+            "message": "Repeat the current weight until it feels more controlled."
+        }
+
+    if not reps_ok:
+        return {
+            "status": "repeat",
+            "message": "Repeat the current weight and aim to complete all prescribed reps."
+        }
+
     return {
         "status": "repeat",
-        "message": "Repeat the current weight and focus on clean form."
+        "message": "Repeat the current weight and log reps/RPE clearly next time."
     }
 
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", dashboard=get_dashboard_data())
 
 
 @app.route("/gym")
@@ -372,6 +522,8 @@ def gym():
     for ex in filtered:
         ex_copy = ex.copy()
         ex_copy["history"] = get_recent_history(ex["name"])
+        ex_copy["personal_best"] = get_personal_best(ex["name"])
+        ex_copy["previous_summary"] = get_previous_session_summary(ex["name"])
         ex_copy["recommendation"] = get_recommendation(ex)
         enriched.append(ex_copy)
 

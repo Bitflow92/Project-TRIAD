@@ -1,37 +1,70 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero">
-    <div class="hero-kicker">R 🏊 🚴 🏃</div>
-    <h1>Project TRIAD</h1>
-    <p class="tagline">You can do it!</p>
-    <p>Rynier's Ironman 70.3 coaching platform.</p>
+<section class="dashboard-hero">
+    <div>
+        <p class="hero-kicker">Ironman 70.3 preparation</p>
+        <h1>Welcome back, Rynier</h1>
+        <p class="tagline">You can do it!</p>
+        <p class="dashboard-focus">Current focus: steady strength, durable movement, and clean execution.</p>
+    </div>
+    <a class="suggested-button" href="{{ dashboard.suggested_href }}">Start Suggested Workout</a>
 </section>
 
-<section class="cards">
-    <a class="card" href="/gym?session=A">
-        <h2>Session A</h2>
-        <p>Swim & Upper Body Strength</p>
-    </a>
-
-    <a class="card" href="/gym?session=B">
-        <h2>Session B</h2>
-        <p>Bike & Run Strength</p>
-    </a>
-
-    <a class="card" href="/gym?session=C">
-        <h2>Session C</h2>
-        <p>Core, Mobility & Daily Three</p>
-    </a>
-
-    <a class="card" href="/log">
-        <h2>Workout Log</h2>
-        <p>Review saved exercise entries.</p>
-    </a>
-
-    <div class="card muted">
-        <h2>Coming Soon</h2>
-        <p>Swim, bike, run, recovery and AI coach.</p>
+<section class="suggested-card">
+    <small>Suggested next workout</small>
+    <div>
+        <strong>{{ dashboard.suggested_label }}</strong>
+        <span>Based on your latest logged session.</span>
     </div>
+</section>
+
+<section class="dashboard-stats">
+    <div class="dashboard-stat">
+        <small>Total logged sets</small>
+        <strong>{{ dashboard.total_sets }}</strong>
+    </div>
+    <div class="dashboard-stat">
+        <small>Exercises logged</small>
+        <strong>{{ dashboard.exercises_logged }}</strong>
+    </div>
+    <div class="dashboard-stat">
+        <small>Last workout date</small>
+        <strong>{{ dashboard.last_workout }}</strong>
+    </div>
+    <div class="dashboard-stat">
+        <small>Most logged exercise</small>
+        <strong>{{ dashboard.most_logged_exercise }}</strong>
+        {% if dashboard.most_logged_sets %}
+        <span>{{ dashboard.most_logged_sets }} sets</span>
+        {% endif %}
+    </div>
+</section>
+
+<section class="quick-actions">
+    <a class="card action-card" href="/gym?session=A">
+        <span>Start Session A</span>
+        <small>Swim & Upper Body Strength</small>
+    </a>
+
+    <a class="card action-card" href="/gym?session=B">
+        <span>Start Session B</span>
+        <small>Bike & Run Strength</small>
+    </a>
+
+    <a class="card action-card" href="/gym?session=C">
+        <span>Core / Session C</span>
+        <small>Core, Mobility & Daily Three</small>
+    </a>
+
+    <a class="card action-card" href="/log">
+        <span>Workout Log</span>
+        <small>Review saved exercise entries</small>
+    </a>
+
+    <a class="card action-card" href="/admin">
+        <span>Admin</span>
+        <small>Export, backup, and data tools</small>
+    </a>
 </section>
 {% endblock %}
