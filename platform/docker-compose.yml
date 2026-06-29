@@ -1,0 +1,12 @@
+services:
+  triad:
+    image: python:3.12-slim
+    container_name: project-triad
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./app:/app
+      - ./data:/data
+    command: sh -c "pip install flask gunicorn && gunicorn -w 2 -b 0.0.0.0:8000 server:app"
+    ports:
+      - "127.0.0.1:5090:8000"

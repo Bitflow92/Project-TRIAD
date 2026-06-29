@@ -1,0 +1,48 @@
+# ===========================
+# macOS
+# ===========================
+
+.DS_Store
+
+# ===========================
+# Python
+# ===========================
+
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# ===========================
+# SQLite databases
+# ===========================
+
+platform/data/*.db
+platform/data/*.sqlite
+platform/data/*.sqlite3
+
+# Optional journal files
+platform/data/*.db-journal
+
+# ===========================
+# VS Code
+# ===========================
+
+.vscode/settings.json
+
+# ===========================
+# Logs
+# ===========================
+
+*.log
+
+# ===========================
+# Temporary files
+# ===========================
+
+*.tmp
+*.bak
