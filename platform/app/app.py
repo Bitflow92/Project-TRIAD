@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime
 
 app = Flask(__name__)
-DB = "/data/triad.db"
+DB = "/instance/triad.db"
 
 def init_db():
     with sqlite3.connect(DB) as con:
