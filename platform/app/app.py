@@ -1,6 +1,9 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response, send_file, redirect, url_for
 import sqlite3
 from datetime import datetime
+import csv
+import io
+import os
 
 app = Flask(__name__)
 DB = "/instance/triad.db"
@@ -411,3 +414,72 @@ def view_log():
         ORDER BY id DESC
         """).fetchall()
     return render_template("log.html", rows=rows)
+
+
+@app.route("/admin")
+def admin():
+    with sqlite3.connect(DB) as con:
+        con.row_factory = sqlite3.Row
+        stats = con.execute("""
+        SELECT
+            COUNT(*) AS total_entries,
+            COUNT(DISTINCT exercise) AS distinct_exercises,
+            MAX(created_at) AS latest_entry
+        FROM exercise_logs
+        """).fetchone()
+
+    db_size_kb = round(os.path.getsize(DB) / 1024, 1) if os.path.exists(DB) else 0
+
+    return render_template(
+        "admin.html",
+        stats=stats,
+        db_size_kb=db_size_kb,
+        cleared=request.args.get("cleared") == "1"
+    )
+
+
+@app.route("/admin/export.csv")
+def export_workout_csv():
+    with sqlite3.connect(DB) as con:
+        con.row_factory = sqlite3.Row
+        rows = con.execute("""
+        SELECT created_at, session, exercise, set_no, weight, reps, rpe, notes
+        FROM exercise_logs
+        ORDER BY id ASC
+        """).fetchall()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["created_at", "session", "exercise", "set_no", "weight", "reps", "rpe", "notes"])
+    for row in rows:
+        writer.writerow([
+            row["created_at"],
+            row["session"],
+            row["exercise"],
+            row["set_no"],
+            row["weight"],
+            row["reps"],
+            row["rpe"],
+            row["notes"],
+        ])
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=triad-workout-log.csv"}
+    )
+
+
+@app.route("/admin/download-db")
+def download_db():
+    return send_file(DB, as_attachment=True, download_name="triad.db")
+
+
+@app.route("/admin/clear", methods=["POST"])
+def clear_workout_history():
+    if request.form.get("confirm_clear") == "yes":
+        with sqlite3.connect(DB) as con:
+            con.execute("DELETE FROM exercise_logs")
+        return redirect(url_for("admin", cleared="1"))
+
+    return redirect(url_for("admin"))

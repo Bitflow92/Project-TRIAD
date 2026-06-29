@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-title admin-title">
+    <h1>Admin Tools</h1>
+    <p>Workout data controls and database utilities for Project TRIAD.</p>
+</section>
+
+{% if cleared %}
+<div class="admin-notice">
+    Workout history cleared. The database file was left in place.
+</div>
+{% endif %}
+
+<section class="admin-stats">
+    <div class="admin-stat">
+        <small>Total workout entries</small>
+        <strong>{{ stats.total_entries }}</strong>
+    </div>
+    <div class="admin-stat">
+        <small>Distinct exercises logged</small>
+        <strong>{{ stats.distinct_exercises }}</strong>
+    </div>
+    <div class="admin-stat">
+        <small>Latest entry timestamp</small>
+        <strong>{{ stats.latest_entry or "No entries yet" }}</strong>
+    </div>
+    <div class="admin-stat">
+        <small>Database size</small>
+        <strong>{{ db_size_kb }} KB</strong>
+    </div>
+</section>
+
+<section class="admin-actions">
+    <div class="admin-panel">
+        <h2>Export Workout Log</h2>
+        <p>Download every workout log row as a CSV file.</p>
+        <a class="admin-button" href="/admin/export.csv">Export CSV</a>
+    </div>
+
+    <div class="admin-panel">
+        <h2>Backup Database</h2>
+        <p>Download the current SQLite database file.</p>
+        <a class="admin-button secondary" href="/admin/download-db">Download triad.db</a>
+    </div>
+
+    <div class="admin-panel danger-panel">
+        <h2>Clear Workout History</h2>
+        <p>This deletes rows from workout history only. The database file remains in place.</p>
+        <form method="post" action="/admin/clear">
+            <label class="confirm-clear">
+                <input type="checkbox" name="confirm_clear" value="yes">
+                <span>I understand this will delete all workout log entries.</span>
+            </label>
+            <button class="danger-button" type="submit">Clear workout history</button>
+        </form>
+    </div>
+</section>
+{% endblock %}
