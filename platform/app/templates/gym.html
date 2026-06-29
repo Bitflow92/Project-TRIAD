@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-title">
+    <h1>Gym Program</h1>
+    <p>Session A: Swim & Upper Body • Session B: Bike & Run Strength</p>
+</section>
+
+<div class="exercise-list">
+    {% for ex in exercises %}
+    <section class="exercise-card">
+        <div class="exercise-header">
+            <h2>{{ ex.name }}</h2>
+            <span>Session {{ ex.session }}</span>
+        </div>
+
+        <p><strong>Machine:</strong> {{ ex.machine }}</p>
+        <p><strong>Target:</strong> {{ ex.target }} • <strong>Sets/Reps:</strong> {{ ex.sets }} x {{ ex.reps }}</p>
+        <p><strong>Coaching cue:</strong> {{ ex.cue }}</p>
+
+        <div class="set-grid">
+            {% for set_no in range(1, ex.sets + 1) %}
+            <div class="set-box">
+                <h3>Set {{ set_no }}</h3>
+                <input placeholder="Weight" data-field="weight">
+                <input placeholder="Reps" data-field="reps">
+                <input placeholder="RPE" data-field="rpe">
+                <textarea placeholder="Notes" data-field="notes"></textarea>
+                <button
+                    data-session="{{ ex.session }}"
+                    data-exercise="{{ ex.name }}"
+                    data-set="{{ set_no }}"
+                    onclick="saveSet(this)">
+                    Save Set
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/gym.js') }}"></script>
+{% endblock %}
