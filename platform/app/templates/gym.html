@@ -2,8 +2,22 @@
 
 {% block content %}
 <section class="page-title">
-    <h1>Gym Program</h1>
-    <p>Session A: Swim & Upper Body • Session B: Bike & Run Strength</p>
+    <h1>{{ title }}</h1>
+    <p>
+        {% if selected_session == "A" %}
+        Swim & Upper Body Strength
+        {% elif selected_session == "B" %}
+        Bike & Run Strength
+        {% else %}
+        Core, Mobility & Daily Three
+        {% endif %}
+    </p>
+</section>
+
+<section class="session-tabs">
+    <a class="{% if selected_session == 'A' %}active{% endif %}" href="/gym?session=A">Session A</a>
+    <a class="{% if selected_session == 'B' %}active{% endif %}" href="/gym?session=B">Session B</a>
+    <a class="{% if selected_session == 'C' %}active{% endif %}" href="/gym?session=C">Session C</a>
 </section>
 
 <div class="exercise-list">
@@ -14,9 +28,31 @@
             <span>Session {{ ex.session }}</span>
         </div>
 
-        <p><strong>Machine:</strong> {{ ex.machine }}</p>
-        <p><strong>Target:</strong> {{ ex.target }} • <strong>Sets/Reps:</strong> {{ ex.sets }} x {{ ex.reps }}</p>
-        <p><strong>Coaching cue:</strong> {{ ex.cue }}</p>
+        {% if ex.image %}
+        <img class="exercise-image" src="{{ url_for('static', filename=ex.image) }}" alt="{{ ex.name }}">
+        {% endif %}
+
+        <div class="exercise-meta">
+            <p><strong>Machine:</strong> {{ ex.machine }}</p>
+            <p><strong>Target:</strong> {{ ex.target }} • <strong>Sets/Reps:</strong> {{ ex.sets }} x {{ ex.reps }}</p>
+            <p><strong>Primary purpose:</strong> {{ ex.purpose }}</p>
+            <p><strong>Coaching cue:</strong> {{ ex.cue }}</p>
+        </div>
+
+        {% if ex.video %}
+        <a class="video-button" href="{{ ex.video }}" target="_blank">Watch technique video</a>
+        {% endif %}
+
+        {% if ex.mistakes %}
+        <div class="mistakes">
+            <strong>Common mistakes:</strong>
+            <ul>
+                {% for mistake in ex.mistakes %}
+                <li>{{ mistake }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
         <div class="set-grid">
             {% for set_no in range(1, ex.sets + 1) %}
@@ -27,7 +63,7 @@
                 <input placeholder="RPE" data-field="rpe">
                 <textarea placeholder="Notes" data-field="notes"></textarea>
                 <button
-                    data-session="{{ ex.session }}"
+                    data-session="{{ selected_session }}"
                     data-exercise="{{ ex.name }}"
                     data-set="{{ set_no }}"
                     onclick="saveSet(this)">
