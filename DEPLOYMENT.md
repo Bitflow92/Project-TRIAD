@@ -62,3 +62,7 @@ git status
 git branch
 
 git remote -v
+
+## Excecute deployment script on VPS
+
+./platform/deploy.sh
