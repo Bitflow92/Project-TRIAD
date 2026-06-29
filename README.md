@@ -1,2 +1,2 @@
 # Project-TRIAD
-Personal AI-powered Ironman Coaching System
+Github Information for Personal AI-powered Ironman Coaching System
