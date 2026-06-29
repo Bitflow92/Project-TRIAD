@@ -7,6 +7,6 @@ services:
     volumes:
       - ./app:/app
       - ./data:/data
-    command: sh -c "pip install flask gunicorn && gunicorn -w 2 -b 0.0.0.0:8000 server:app"
+    command: sh -c "pip install flask gunicorn && gunicorn -w 2 -b 0.0.0.0:8000 app:app"
     ports:
       - "127.0.0.1:5090:8000"
