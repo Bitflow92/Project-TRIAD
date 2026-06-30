@@ -10,6 +10,5 @@ Project TRIAD is a personal, self-hosted endurance coaching platform for strengt
 
 ## Links
 
-- Live platform: <https://triad.bitflow92.co.za>
 - Public website source: [`docs/index.html`](docs/index.html)
 - Repository: <https://github.com/Bitflow92/Project-TRIAD>
