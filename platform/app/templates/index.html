@@ -4,9 +4,9 @@
 <section class="dashboard-hero">
     <div>
         <p class="hero-kicker">Ironman 70.3 preparation</p>
-        <h1>Welcome back, Rynier</h1>
+        <h1>Welcome back, {{ user }}</h1>
         <p class="tagline">You can do it!</p>
-        <p class="dashboard-focus">Current focus: steady strength, durable movement, and clean execution.</p>
+        <p class="dashboard-focus">{{ user }}'s dashboard is showing personal workout history, PBs, and next-session guidance.</p>
     </div>
     <a class="suggested-button" href="{{ dashboard.suggested_href }}">Start Suggested Workout</a>
 </section>
@@ -62,9 +62,11 @@
         <small>Review saved exercise entries</small>
     </a>
 
+    {% if current_user == "Rynier" %}
     <a class="card action-card" href="/admin">
         <span>Admin</span>
         <small>Export, backup, and data tools</small>
     </a>
+    {% endif %}
 </section>
 {% endblock %}

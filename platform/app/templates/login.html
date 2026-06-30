@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="login-page">
+    <div class="login-hero">
+        <p class="hero-kicker">Project TRIAD</p>
+        <h1>Choose your dashboard</h1>
+        <p>Sign in to keep gym sessions, history, PBs, recommendations, and logs separate.</p>
+    </div>
+
+    {% if error %}
+    <div class="login-error">{{ error }}</div>
+    {% endif %}
+
+    {% if selected_user %}
+    <section class="password-panel">
+        <a class="back-link" href="{{ url_for('login') }}">Choose a different user</a>
+        <h2>Welcome, {{ selected_user }}</h2>
+        <form method="post" action="{{ url_for('login') }}">
+            <input type="hidden" name="user" value="{{ selected_user }}">
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" autocomplete="current-password" autofocus required>
+            <button type="submit">Enter {{ selected_user }}'s Dashboard</button>
+        </form>
+    </section>
+    {% else %}
+    <section class="user-card-grid" aria-label="Choose user">
+        <a class="user-card" href="{{ url_for('login', user='Rynier') }}">
+            <span>Rynier</span>
+            <small>Open personal TRIAD dashboard</small>
+        </a>
+        <a class="user-card" href="{{ url_for('login', user='Wietz') }}">
+            <span>Wietz</span>
+            <small>Open personal TRIAD dashboard</small>
+        </a>
+    </section>
+    {% endif %}
+</section>
+{% endblock %}

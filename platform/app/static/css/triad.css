@@ -45,6 +45,25 @@ nav a {
     font-weight: 600;
 }
 
+.current-user-badge {
+    background: var(--info-bg);
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    color: var(--blue);
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 800;
+    margin-left: 14px;
+    padding: 6px 10px;
+}
+
+.logout-link {
+    background: var(--navy);
+    border-radius: 999px;
+    color: white;
+    padding: 7px 11px;
+}
+
 main {
     max-width: 960px;
     margin: 0 auto;
@@ -220,6 +239,105 @@ main {
 .card h2 {
     color: var(--blue);
     margin-top: 0;
+}
+
+.login-page {
+    display: grid;
+    gap: 18px;
+    min-height: calc(100vh - 190px);
+    place-content: center;
+}
+
+.login-hero {
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    color: white;
+    padding: 34px 24px;
+    text-align: center;
+}
+
+.login-hero h1 {
+    font-size: 38px;
+    margin: 0;
+}
+
+.login-hero p:last-child {
+    font-size: 17px;
+    margin-bottom: 0;
+    opacity: 0.9;
+}
+
+.user-card-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.user-card,
+.password-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.user-card {
+    color: var(--text);
+    display: block;
+    min-height: 150px;
+    padding: 24px;
+    text-decoration: none;
+}
+
+.user-card span {
+    color: var(--blue);
+    display: block;
+    font-size: 30px;
+    font-weight: 900;
+    margin-bottom: 10px;
+}
+
+.user-card small {
+    color: var(--muted);
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.password-panel {
+    margin: 0 auto;
+    max-width: 420px;
+    padding: 22px;
+    width: 100%;
+}
+
+.password-panel h2 {
+    color: var(--navy);
+    margin: 12px 0 16px 0;
+}
+
+.password-panel label {
+    color: var(--muted);
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.back-link {
+    color: var(--blue);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.login-error {
+    background: var(--warning-bg);
+    border-left: 5px solid var(--danger);
+    border-radius: 14px;
+    color: var(--danger);
+    font-weight: 800;
+    padding: 14px;
 }
 
 .muted {
@@ -674,6 +792,32 @@ footer {
 
     nav a {
         margin-left: 0;
+    }
+
+    .current-user-badge {
+        margin-left: 0;
+    }
+
+    .login-page {
+        min-height: auto;
+        place-content: stretch;
+    }
+
+    .login-hero {
+        border-radius: 20px;
+        padding: 28px 18px;
+    }
+
+    .login-hero h1 {
+        font-size: 32px;
+    }
+
+    .user-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .user-card {
+        min-height: 110px;
     }
 
     .hero h1 {

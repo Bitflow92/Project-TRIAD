@@ -8,13 +8,19 @@
 </head>
 <body>
     <header class="topbar">
-        <div class="brand">R 🏊 🚴 🏃</div>
+        <div class="brand">Project TRIAD</div>
+        {% if current_user %}
         <nav>
             <a href="/">Home</a>
             <a href="/gym">Gym</a>
             <a href="/log">Log</a>
+            {% if current_user == "Rynier" %}
             <a href="/admin">Admin</a>
+            {% endif %}
+            <span class="current-user-badge">{{ current_user }}</span>
+            <a class="logout-link" href="/logout">Logout</a>
         </nav>
+        {% endif %}
     </header>
 
     <main>

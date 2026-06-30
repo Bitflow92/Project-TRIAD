@@ -3,6 +3,11 @@ services:
     build: .
     container_name: project-triad
     restart: unless-stopped
+    environment:
+      TRIAD_SECRET_KEY: ${TRIAD_SECRET_KEY:-}
+      TRIAD_RYNIER_PASSWORD: ${TRIAD_RYNIER_PASSWORD:-}
+      TRIAD_WIETZ_PASSWORD: ${TRIAD_WIETZ_PASSWORD:-}
+      TRIAD_DB: ${TRIAD_DB:-}
     volumes:
       - ./instance:/instance
     ports:

@@ -1,13 +1,63 @@
-from flask import Flask, request, jsonify, render_template, Response, send_file, redirect, url_for
+from flask import Flask, request, jsonify, render_template, Response, send_file, redirect, url_for, session
 import sqlite3
 from datetime import datetime
 import csv
+from functools import wraps
+import hmac
 import io
 import os
 import re
 
 app = Flask(__name__)
-DB = "/instance/triad.db"
+
+
+def env_or_default(name, default):
+    return os.environ.get(name) or default
+
+
+DB = env_or_default("TRIAD_DB", "/instance/triad.db")
+
+# Production deployments must set TRIAD_SECRET_KEY and both password environment
+# variables. The fallback values below are temporary development defaults only.
+app.secret_key = env_or_default("TRIAD_SECRET_KEY", "triad-development-secret-change-me")
+
+USERS = {
+    "Rynier": env_or_default("TRIAD_RYNIER_PASSWORD", "change-me-rynier"),
+    "Wietz": env_or_default("TRIAD_WIETZ_PASSWORD", "change-me-wietz"),
+}
+
+
+def current_user():
+    user = session.get("user")
+    return user if user in USERS else None
+
+
+@app.context_processor
+def inject_current_user():
+    return {"current_user": current_user()}
+
+
+def login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not current_user():
+            return redirect(url_for("login"))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def rynier_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        user = current_user()
+        if not user:
+            return redirect(url_for("login"))
+        if user != "Rynier":
+            return redirect(url_for("index"))
+        return view(*args, **kwargs)
+
+    return wrapped
 
 
 def init_db():
@@ -24,6 +74,14 @@ def init_db():
             rpe TEXT,
             notes TEXT
         )
+        """)
+        columns = [row[1] for row in con.execute("PRAGMA table_info(exercise_logs)").fetchall()]
+        if "user" not in columns:
+            con.execute("ALTER TABLE exercise_logs ADD COLUMN user TEXT")
+        con.execute("""
+        UPDATE exercise_logs
+        SET user = 'Rynier'
+        WHERE user IS NULL OR TRIM(user) = ''
         """)
 
 
@@ -296,16 +354,17 @@ EXERCISES = [
 ]
 
 
-def get_recent_history(exercise_name, limit=3):
+def get_recent_history(exercise_name, user, limit=3):
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         rows = con.execute("""
         SELECT created_at, session, exercise, set_no, weight, reps, rpe, notes
         FROM exercise_logs
         WHERE exercise = ?
+          AND user = ?
         ORDER BY id DESC
         LIMIT ?
-        """, (exercise_name, limit * 4)).fetchall()
+        """, (exercise_name, user, limit * 4)).fetchall()
 
     return [dict(r) for r in rows]
 
@@ -341,7 +400,7 @@ def format_number(value):
     return f"{value:.1f}"
 
 
-def get_dashboard_data():
+def get_dashboard_data(user):
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         stats = con.execute("""
@@ -350,22 +409,25 @@ def get_dashboard_data():
             COUNT(DISTINCT exercise) AS exercises_logged,
             MAX(created_at) AS last_workout
         FROM exercise_logs
-        """).fetchone()
+        WHERE user = ?
+        """, (user,)).fetchone()
 
         most_logged = con.execute("""
         SELECT exercise, COUNT(*) AS logged_sets
         FROM exercise_logs
+        WHERE user = ?
         GROUP BY exercise
         ORDER BY logged_sets DESC, exercise ASC
         LIMIT 1
-        """).fetchone()
+        """, (user,)).fetchone()
 
         latest = con.execute("""
         SELECT session
         FROM exercise_logs
+        WHERE user = ?
         ORDER BY id DESC
         LIMIT 1
-        """).fetchone()
+        """, (user,)).fetchone()
 
     latest_session = latest["session"] if latest else None
     suggested_session = "B" if latest_session == "A" else "A"
@@ -382,13 +444,14 @@ def get_dashboard_data():
     }
 
 
-def get_personal_best(exercise_name):
+def get_personal_best(exercise_name, user):
     with sqlite3.connect(DB) as con:
         rows = con.execute("""
         SELECT weight
         FROM exercise_logs
         WHERE exercise = ?
-        """, (exercise_name,)).fetchall()
+          AND user = ?
+        """, (exercise_name, user)).fetchall()
 
     best = None
     for row in rows:
@@ -402,16 +465,17 @@ def get_personal_best(exercise_name):
     }
 
 
-def get_previous_session_summary(exercise_name):
+def get_previous_session_summary(exercise_name, user):
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         latest = con.execute("""
         SELECT substr(created_at, 1, 10) AS workout_date
         FROM exercise_logs
         WHERE exercise = ?
+          AND user = ?
         ORDER BY id DESC
         LIMIT 1
-        """, (exercise_name,)).fetchone()
+        """, (exercise_name, user)).fetchone()
 
         if not latest:
             return None
@@ -420,9 +484,10 @@ def get_previous_session_summary(exercise_name):
         SELECT created_at, weight, reps, rpe
         FROM exercise_logs
         WHERE exercise = ?
+          AND user = ?
           AND substr(created_at, 1, 10) = ?
         ORDER BY id ASC
-        """, (exercise_name, latest["workout_date"])).fetchall()
+        """, (exercise_name, user, latest["workout_date"])).fetchall()
 
     weights = [parse_numeric_weight(r["weight"]) for r in rows]
     numeric_weights = [w for w in weights if w is not None]
@@ -440,8 +505,8 @@ def get_previous_session_summary(exercise_name):
     }
 
 
-def get_recommendation(exercise):
-    rows = get_recent_history(exercise["name"], limit=1)
+def get_recommendation(exercise, user):
+    rows = get_recent_history(exercise["name"], user, limit=1)
 
     if not rows:
         return {
@@ -504,11 +569,47 @@ def get_recommendation(exercise):
 
 @app.route("/")
 def index():
-    return render_template("index.html", dashboard=get_dashboard_data())
+    user = current_user()
+    if not user:
+        return render_template("login.html")
+
+    return render_template("index.html", dashboard=get_dashboard_data(user), user=user)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        selected_user = request.form.get("user", "")
+        password = request.form.get("password", "")
+
+        if selected_user in USERS and hmac.compare_digest(password, USERS[selected_user]):
+            session.clear()
+            session["user"] = selected_user
+            return redirect(url_for("index"))
+
+        return render_template(
+            "login.html",
+            selected_user=selected_user if selected_user in USERS else None,
+            error="That password was not accepted. Please try again."
+        )
+
+    selected_user = request.args.get("user")
+    return render_template(
+        "login.html",
+        selected_user=selected_user if selected_user in USERS else None
+    )
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 
 @app.route("/gym")
+@login_required
 def gym():
+    user = current_user()
     session = request.args.get("session", "A")
 
     if session == "C":
@@ -521,10 +622,10 @@ def gym():
     enriched = []
     for ex in filtered:
         ex_copy = ex.copy()
-        ex_copy["history"] = get_recent_history(ex["name"])
-        ex_copy["personal_best"] = get_personal_best(ex["name"])
-        ex_copy["previous_summary"] = get_previous_session_summary(ex["name"])
-        ex_copy["recommendation"] = get_recommendation(ex)
+        ex_copy["history"] = get_recent_history(ex["name"], user)
+        ex_copy["personal_best"] = get_personal_best(ex["name"], user)
+        ex_copy["previous_summary"] = get_previous_session_summary(ex["name"], user)
+        ex_copy["recommendation"] = get_recommendation(ex, user)
         enriched.append(ex_copy)
 
     return render_template(
@@ -536,15 +637,18 @@ def gym():
 
 
 @app.route("/api/log", methods=["POST"])
+@login_required
 def save_log():
+    user = current_user()
     data = request.json
     with sqlite3.connect(DB) as con:
         con.execute("""
         INSERT INTO exercise_logs
-        (created_at, session, exercise, set_no, weight, reps, rpe, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (created_at, user, session, exercise, set_no, weight, reps, rpe, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             datetime.now().isoformat(timespec="seconds"),
+            user,
             data.get("session"),
             data.get("exercise"),
             data.get("set_no"),
@@ -557,18 +661,22 @@ def save_log():
 
 
 @app.route("/log")
+@login_required
 def view_log():
+    user = current_user()
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         rows = con.execute("""
         SELECT created_at, session, exercise, set_no, weight, reps, rpe, notes
         FROM exercise_logs
+        WHERE user = ?
         ORDER BY id DESC
-        """).fetchall()
-    return render_template("log.html", rows=rows)
+        """, (user,)).fetchall()
+    return render_template("log.html", rows=rows, user=user)
 
 
 @app.route("/admin")
+@rynier_required
 def admin():
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
@@ -591,21 +699,23 @@ def admin():
 
 
 @app.route("/admin/export.csv")
+@rynier_required
 def export_workout_csv():
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         rows = con.execute("""
-        SELECT created_at, session, exercise, set_no, weight, reps, rpe, notes
+        SELECT created_at, user, session, exercise, set_no, weight, reps, rpe, notes
         FROM exercise_logs
         ORDER BY id ASC
         """).fetchall()
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["created_at", "session", "exercise", "set_no", "weight", "reps", "rpe", "notes"])
+    writer.writerow(["created_at", "user", "session", "exercise", "set_no", "weight", "reps", "rpe", "notes"])
     for row in rows:
         writer.writerow([
             row["created_at"],
+            row["user"],
             row["session"],
             row["exercise"],
             row["set_no"],
@@ -623,11 +733,13 @@ def export_workout_csv():
 
 
 @app.route("/admin/download-db")
+@rynier_required
 def download_db():
     return send_file(DB, as_attachment=True, download_name="triad.db")
 
 
 @app.route("/admin/clear", methods=["POST"])
+@rynier_required
 def clear_workout_history():
     if request.form.get("confirm_clear") == "yes":
         with sqlite3.connect(DB) as con:

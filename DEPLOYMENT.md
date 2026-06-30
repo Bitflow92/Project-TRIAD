@@ -6,9 +6,22 @@ Domain:
 
 ```text
 https://triad.bitflow92.co.za
+```
 
 ## VPS path
 /home/cdr2bok297/project-triad
+
+## Release 2.6 environment variables
+
+Set these in the Docker/container environment before production use:
+
+```text
+TRIAD_SECRET_KEY=<long-random-secret>
+TRIAD_RYNIER_PASSWORD=<private-password>
+TRIAD_WIETZ_PASSWORD=<private-password>
+```
+
+`TRIAD_DB` is optional and defaults to `/instance/triad.db` for the Docker deployment.
 
 ## Deployment flow
 #
