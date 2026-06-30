@@ -47,10 +47,20 @@ platform/data/*.db-journal
 *.tmp
 *.bak
 
+# ===========================
 # Runtime deployment state
+# ===========================
 
 platform/.last_successful_commit
 
-# Live SQLite database / instance files
+# ===========================
+# Runtime environment (VPS only)
+# ===========================
+
+platform/.env
+
+# ===========================
+# Live database
+# ===========================
 
 platform/instance/
