@@ -5,6 +5,7 @@ import csv
 from functools import wraps
 import hmac
 import io
+import json
 import os
 import re
 
@@ -123,6 +124,19 @@ def init_db():
             notes TEXT,
             updated_at TEXT,
             UNIQUE(user, exercise)
+        )
+        """)
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS coaching_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user TEXT NOT NULL,
+            session TEXT NOT NULL,
+            exercise TEXT NOT NULL,
+            target TEXT,
+            prescription TEXT,
+            recommendation TEXT,
+            updated_at TEXT,
+            UNIQUE(user, session, exercise)
         )
         """)
 
@@ -691,6 +705,80 @@ def get_machine_profiles(user):
     return {row["exercise"]: dict(row) for row in rows}
 
 
+def get_coaching_plans(user, selected_session):
+    with sqlite3.connect(DB) as con:
+        con.row_factory = sqlite3.Row
+        rows = con.execute("""
+        SELECT *
+        FROM coaching_plans
+        WHERE user = ?
+          AND session = ?
+        """, (user, selected_session)).fetchall()
+
+    return {row["exercise"]: dict(row) for row in rows}
+
+
+def upsert_coaching_plan(user, selected_session, exercise_name, target, prescription, recommendation):
+    now = datetime.now().isoformat(timespec="seconds")
+    with sqlite3.connect(DB) as con:
+        con.execute("""
+        INSERT INTO coaching_plans
+        (user, session, exercise, target, prescription, recommendation, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(user, session, exercise) DO UPDATE SET
+            target = excluded.target,
+            prescription = excluded.prescription,
+            recommendation = excluded.recommendation,
+            updated_at = excluded.updated_at
+        """, (
+            user,
+            selected_session,
+            exercise_name,
+            clean_value(target),
+            clean_value(prescription),
+            clean_value(recommendation),
+            now,
+        ))
+
+
+def valid_exercise_names_for_session(selected_session):
+    names = set()
+    for exercise in exercises_for_session(selected_session):
+        names.add(exercise["name"])
+        names.update(exercise.get("aliases", []))
+    return names
+
+
+def canonical_exercise_name(selected_session, exercise_name):
+    for exercise in exercises_for_session(selected_session):
+        if exercise["name"] == exercise_name or exercise_name in exercise.get("aliases", []):
+            return exercise["name"]
+    return None
+
+
+def machine_setup_summary(profile):
+    if not profile:
+        return "No setup saved yet"
+
+    fields = [
+        ("Seat", profile.get("seat_position")),
+        ("Cable", profile.get("cable_height")),
+        ("Backrest", profile.get("backrest_position")),
+        ("Handle", profile.get("handle_attachment")),
+        ("Foot", profile.get("foot_position")),
+    ]
+    parts = [f"{label} {value}" for label, value in fields if clean_value(value)]
+    if parts:
+        return " • ".join(parts)
+    if clean_value(profile.get("notes")):
+        return "Setup notes saved"
+    return "No setup saved yet"
+
+
+def has_machine_setup(profile):
+    return machine_setup_summary(profile) != "No setup saved yet"
+
+
 def find_exercise(selected_session, exercise_name):
     for order, exercise in enumerate(exercises_for_session(selected_session), start=1):
         if exercise["name"] == exercise_name or exercise_name in exercise.get("aliases", []):
@@ -778,9 +866,12 @@ def gym():
     filtered = exercises_for_session(selected_session)
     drafts = get_workout_drafts(user, selected_session)
     profiles = get_machine_profiles(user)
+    coaching_plans = get_coaching_plans(user, selected_session)
     enriched = []
     for order, ex in enumerate(filtered, start=1):
         ex_copy = ex.copy()
+        plan = coaching_plans.get(ex_copy["name"], {})
+        default_recommendation = get_recommendation(ex, user)
         ex_copy["exercise_order"] = order
         ex_copy["exercise_type"] = ex_copy.get("exercise_type", "standard")
         ex_copy["image_version"] = static_image_version(ex_copy.get("image"))
@@ -788,8 +879,23 @@ def gym():
         ex_copy["history"] = get_recent_history(ex_copy, user)
         ex_copy["personal_best"] = get_personal_best(ex_copy, user)
         ex_copy["previous_summary"] = get_previous_session_summary(ex_copy, user)
-        ex_copy["recommendation"] = get_recommendation(ex, user)
+        ex_copy["display_target"] = plan.get("target") or ex_copy["target"]
+        ex_copy["display_prescription"] = plan.get("prescription") or f"{ex_copy['sets']} x {ex_copy['reps']}"
+        ex_copy["recommendation"] = (
+            {
+                "status": "coach",
+                "message": plan["recommendation"],
+                "label": "Coach Recommendation",
+            }
+            if plan.get("recommendation")
+            else {
+                **default_recommendation,
+                "label": "TRIAD Recommendation",
+            }
+        )
         ex_copy["profile"] = profiles.get(ex_copy["name"], {})
+        ex_copy["profile_summary"] = machine_setup_summary(ex_copy["profile"])
+        ex_copy["has_profile"] = has_machine_setup(ex_copy["profile"])
         ex_copy["draft_sets"] = {
             set_no: drafts.get((ex_copy["name"], set_no), {})
             for set_no in range(1, ex_copy["sets"] + 1)
@@ -995,6 +1101,125 @@ def admin():
         cleared=request.args.get("cleared") == "1",
         drafts_cleared=request.args.get("drafts_cleared") == "1"
     )
+
+
+@app.route("/admin/coaching", methods=["GET", "POST"])
+@rynier_required
+def admin_coaching():
+    selected_user = request.values.get("user", "Rynier")
+    selected_session = request.values.get("session", "A")
+    message = None
+    error = None
+
+    if selected_user not in USERS:
+        selected_user = "Rynier"
+        error = "Unknown user selected. Showing Rynier instead."
+    if selected_session not in {"A", "B", "C"}:
+        selected_session = "A"
+        error = "Unknown session selected. Showing Session A instead."
+
+    if request.method == "POST":
+        action = request.form.get("action", "save")
+        if action == "upload":
+            message, error, selected_user, selected_session = handle_coaching_json_upload(
+                selected_user,
+                selected_session,
+            )
+        else:
+            saved = 0
+            valid_names = valid_exercise_names_for_session(selected_session)
+            for exercise in exercises_for_session(selected_session):
+                exercise_name = exercise["name"]
+                if exercise_name not in valid_names:
+                    continue
+                prefix = f"plan-{exercise_name}"
+                upsert_coaching_plan(
+                    selected_user,
+                    selected_session,
+                    exercise_name,
+                    request.form.get(f"{prefix}-target"),
+                    request.form.get(f"{prefix}-prescription"),
+                    request.form.get(f"{prefix}-recommendation"),
+                )
+                saved += 1
+            message = f"Saved {saved} coaching plan rows for {selected_user}, Session {selected_session}."
+
+    exercises = exercises_for_session(selected_session)
+    plans = get_coaching_plans(selected_user, selected_session)
+    rows = []
+    for order, exercise in enumerate(exercises, start=1):
+        plan = plans.get(exercise["name"], {})
+        rows.append({
+            "order": order,
+            "exercise": exercise,
+            "target": plan.get("target") or "",
+            "prescription": plan.get("prescription") or "",
+            "recommendation": plan.get("recommendation") or "",
+            "default_target": exercise["target"],
+            "default_prescription": f"{exercise['sets']} x {exercise['reps']}",
+        })
+
+    return render_template(
+        "admin_coaching.html",
+        users=USERS.keys(),
+        selected_user=selected_user,
+        selected_session=selected_session,
+        rows=rows,
+        message=message,
+        error=error,
+    )
+
+
+def handle_coaching_json_upload(default_user, default_session):
+    uploaded = request.files.get("plan_file")
+    raw_json = ""
+    if uploaded and uploaded.filename:
+        raw_json = uploaded.read().decode("utf-8")
+    else:
+        raw_json = request.form.get("plan_json", "")
+
+    if not clean_value(raw_json):
+        return None, "Choose a JSON file or paste JSON before uploading.", default_user, default_session
+
+    try:
+        payload = json.loads(raw_json)
+    except json.JSONDecodeError as exc:
+        return None, f"Invalid JSON: {exc.msg}.", default_user, default_session
+
+    upload_user = clean_value(payload.get("user")) or default_user
+    upload_session = clean_value(payload.get("session")) or default_session
+    if upload_user not in USERS:
+        return None, f"Unknown user in JSON: {upload_user}.", default_user, default_session
+    if upload_session not in {"A", "B", "C"}:
+        return None, f"Unknown session in JSON: {upload_session}.", default_user, default_session
+
+    plans = payload.get("plans")
+    if not isinstance(plans, list):
+        return None, "JSON must include a plans array.", upload_user, upload_session
+
+    saved = 0
+    errors = []
+    for index, plan in enumerate(plans, start=1):
+        if not isinstance(plan, dict):
+            errors.append(f"Plan {index} is not an object.")
+            continue
+        exercise_name = canonical_exercise_name(upload_session, clean_value(plan.get("exercise")))
+        if not exercise_name:
+            errors.append(f"Plan {index} has an unknown exercise: {plan.get('exercise')}.")
+            continue
+        upsert_coaching_plan(
+            upload_user,
+            upload_session,
+            exercise_name,
+            plan.get("target"),
+            plan.get("prescription"),
+            plan.get("recommendation"),
+        )
+        saved += 1
+
+    message = f"Uploaded {saved} coaching plan row{'s' if saved != 1 else ''} for {upload_user}, Session {upload_session}."
+    error = " ".join(errors) if errors else None
+    return message, error, upload_user, upload_session
 
 
 @app.route("/admin/export.csv")

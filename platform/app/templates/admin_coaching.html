@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="page-title admin-title">
+    <div>
+        <h1>Coaching Plans</h1>
+        <p>Update workout targets, prescriptions and coach recommendations without changing app code.</p>
+    </div>
+    <a class="admin-button secondary" href="/admin">Back to Admin</a>
+</section>
+
+{% if message %}
+<div class="admin-notice">{{ message }}</div>
+{% endif %}
+
+{% if error %}
+<div class="admin-notice admin-error">{{ error }}</div>
+{% endif %}
+
+<section class="admin-panel">
+    <form class="coaching-filter-form" method="get" action="/admin/coaching">
+        <label>
+            <span>User</span>
+            <select name="user">
+                {% for user in users %}
+                <option value="{{ user }}" {% if user == selected_user %}selected{% endif %}>{{ user }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Session</span>
+            <select name="session">
+                {% for session in ["A", "B", "C"] %}
+                <option value="{{ session }}" {% if session == selected_session %}selected{% endif %}>Session {{ session }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button class="admin-button" type="submit">Load Plans</button>
+    </form>
+</section>
+
+<section class="admin-panel">
+    <h2>Edit Session {{ selected_session }} Plans for {{ selected_user }}</h2>
+    <p>Blank fields fall back to the default programme values shown under each input.</p>
+
+    <form method="post" action="/admin/coaching">
+        <input type="hidden" name="action" value="save">
+        <input type="hidden" name="user" value="{{ selected_user }}">
+        <input type="hidden" name="session" value="{{ selected_session }}">
+
+        <div class="coaching-plan-list">
+            {% for row in rows %}
+            <section class="coaching-plan-row">
+                <h3>{{ row.order }}. {{ row.exercise.name }}</h3>
+                <div class="coaching-plan-grid">
+                    <label>
+                        <span>Target</span>
+                        <input name="plan-{{ row.exercise.name }}-target" value="{{ row.target }}" placeholder="{{ row.default_target }}">
+                        <small>Default: {{ row.default_target }}</small>
+                    </label>
+                    <label>
+                        <span>Prescription</span>
+                        <input name="plan-{{ row.exercise.name }}-prescription" value="{{ row.prescription }}" placeholder="{{ row.default_prescription }}">
+                        <small>Default: {{ row.default_prescription }}</small>
+                    </label>
+                    <label>
+                        <span>Recommendation</span>
+                        <textarea name="plan-{{ row.exercise.name }}-recommendation" placeholder="Leave blank to use TRIAD recommendation">{{ row.recommendation }}</textarea>
+                    </label>
+                </div>
+            </section>
+            {% endfor %}
+        </div>
+
+        <button class="admin-button coaching-save-button" type="submit">Save Coaching Plans</button>
+    </form>
+</section>
+
+<section class="admin-panel">
+    <h2>Upload JSON</h2>
+    <p>Upload a coaching plan JSON file or paste JSON below. Valid rows are inserted or updated.</p>
+    <form method="post" action="/admin/coaching" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="upload">
+        <input type="hidden" name="user" value="{{ selected_user }}">
+        <input type="hidden" name="session" value="{{ selected_session }}">
+        <input type="file" name="plan_file" accept="application/json,.json">
+        <textarea class="json-upload-box" name="plan_json" placeholder='{"user":"Rynier","session":"A","plans":[{"exercise":"Plate Loaded Pulldown","target":"50 / 55 / 60 kg","prescription":"3 x 8","recommendation":"Use 50 kg, 55 kg and 60 kg. Increase only if final set RPE is 8 or lower."}]}'></textarea>
+        <button class="admin-button" type="submit">Upload Coaching Plan JSON</button>
+    </form>
+</section>
+{% endblock %}

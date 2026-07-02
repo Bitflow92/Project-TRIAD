@@ -21,7 +21,7 @@ Primary objectives:
 
 # Current Release
 
-**Release:** 2.7  
+**Release:** 2.7.1  
 **Status:** Stable
 
 Major capabilities:
@@ -33,6 +33,8 @@ Major capabilities:
 - Workout draft mode
 - Timed exercise and loaded carry logging
 - Machine setup profiles
+- Collapsible machine setup cards
+- Admin-managed coaching plans
 - Exercise-specific coaching cards
 - Dashboard
 - Administration
@@ -42,6 +44,22 @@ Major capabilities:
 ---
 
 # Release History
+
+## Release 2.7.1
+
+**Theme:** Coaching Plan Updates and Collapsible Machine Setup
+
+**Status:** Completed
+
+Completed:
+
+- [x] Collapsible Machine Setup
+- [x] User-specific Coaching Plans
+- [x] Admin Coaching Plans page
+- [x] Coaching Plan JSON Upload
+- [x] Coach Recommendation display on workout cards
+
+---
 
 ## Release 2.7
 
@@ -78,6 +96,32 @@ No scoped implementation items are currently queued.
 # Product Backlog
 
 ## High Priority
+
+### Coaching Plans
+- **Status:** Completed in Release 2.7.1
+- **Category:** Coaching / Admin
+- **Target:** Release 2.7.1
+
+**Problem:** Workout targets, prescriptions and recommendations required code changes.
+
+**Solution:** Add user-specific coaching plans managed by Rynier from Admin, with JSON upload support.
+
+**Origin:** Release 2.7 follow-up
+
+---
+
+### Collapsible Machine Setup
+- **Status:** Completed in Release 2.7.1
+- **Category:** Workout UX
+- **Target:** Release 2.7.1
+
+**Problem:** Machine setup fields consumed space on every exercise card.
+
+**Solution:** Collapse setup by default unless saved setup data exists, and show a compact saved setup summary.
+
+**Origin:** Release 2.7 follow-up
+
+---
 
 ### Timed Exercise Support
 - **Status:** Completed in Release 2.7

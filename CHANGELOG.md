@@ -8,6 +8,23 @@ The project follows the principles of semantic release documentation.
 
 ---
 
+# Release 2.7.1
+
+## Added
+
+- User-specific coaching plans for target, prescription and coach recommendation overrides
+- Rynier-only Coaching Plans admin page
+- Coaching plan JSON upload support
+- `coaching_plans` database table with user/session/exercise upserts
+
+## Changed
+
+- Machine Setup sections now collapse by default and open automatically when saved setup data exists
+- Workout cards show Coach Recommendation when a coaching plan recommendation is available
+- Workout cards fall back to existing TRIAD recommendations and default programme values when no coaching plan exists
+
+---
+
 # Release 2.7
 
 ## Added

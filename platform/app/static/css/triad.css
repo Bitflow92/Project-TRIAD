@@ -446,7 +446,8 @@ main {
 
 .recommendation-badge.start,
 .recommendation-badge.unclear,
-.recommendation-badge.incomplete {
+.recommendation-badge.incomplete,
+.recommendation-badge.coach {
     background: var(--info-bg);
     border-color: #bfdbfe;
 }
@@ -527,6 +528,11 @@ main {
 }
 
 .recommendation.start {
+    background: var(--info-bg);
+    border-left-color: var(--blue);
+}
+
+.recommendation.coach {
     background: var(--info-bg);
     border-left-color: var(--blue);
 }
@@ -637,7 +643,8 @@ main {
 }
 
 input,
-textarea {
+textarea,
+select {
     width: 100%;
     box-sizing: border-box;
     margin-bottom: 8px;
@@ -740,6 +747,33 @@ button:disabled {
     padding: 14px;
 }
 
+.machine-setup summary {
+    align-items: center;
+    color: var(--navy);
+    cursor: pointer;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    list-style-position: inside;
+}
+
+.machine-setup summary strong {
+    display: block;
+    font-size: 18px;
+}
+
+.machine-setup summary small,
+.machine-setup summary span {
+    color: var(--muted);
+    display: block;
+    font-weight: 700;
+    margin-top: 3px;
+}
+
+.machine-setup[open] summary {
+    margin-bottom: 12px;
+}
+
 .machine-profile-grid {
     display: grid;
     gap: 10px;
@@ -754,6 +788,10 @@ button:disabled {
 .machine-profile-grid textarea {
     grid-column: span 3;
     min-height: 70px;
+}
+
+.setup-save-button {
+    margin-top: 12px;
 }
 
 .log-table {
@@ -879,6 +917,76 @@ th {
     font-weight: 700;
     margin-bottom: 16px;
     padding: 14px;
+}
+
+.admin-error {
+    background: var(--warning-bg);
+    border-left-color: var(--danger);
+    color: var(--danger);
+}
+
+.coaching-filter-form {
+    align-items: flex-end;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.coaching-filter-form label,
+.coaching-plan-grid label {
+    color: var(--navy);
+    font-weight: 800;
+}
+
+.coaching-filter-form label span,
+.coaching-plan-grid label span {
+    color: var(--muted);
+    display: block;
+    font-size: 12px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.coaching-plan-list {
+    display: grid;
+    gap: 14px;
+    margin: 16px 0;
+}
+
+.coaching-plan-row {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+}
+
+.coaching-plan-row h3 {
+    color: var(--blue);
+    margin: 0 0 12px 0;
+}
+
+.coaching-plan-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.4fr);
+}
+
+.coaching-plan-grid textarea {
+    min-height: 92px;
+}
+
+.coaching-plan-grid small {
+    color: var(--muted);
+    display: block;
+    font-weight: 700;
+}
+
+.coaching-save-button {
+    margin-top: 4px;
+}
+
+.json-upload-box {
+    min-height: 140px;
 }
 
 .danger-panel {
@@ -1024,6 +1132,8 @@ footer {
 
     .exercise-summary-grid,
     .machine-profile-grid,
+    .coaching-filter-form,
+    .coaching-plan-grid,
     .set-grid {
         grid-template-columns: 1fr;
     }

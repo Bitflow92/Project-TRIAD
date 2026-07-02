@@ -50,18 +50,18 @@
                     <span class="progress-badge pb-badge">PB: {{ ex.personal_best.label }}</span>
                     <span class="progress-badge">Last session: {{ ex.previous_summary.date if ex.previous_summary else "No history yet" }}</span>
                     <span class="progress-badge recommendation-badge {{ ex.recommendation.status }}">
-                        {{ ex.recommendation.status|capitalize }}
+                        {% if ex.recommendation.status == "coach" %}Coach{% else %}{{ ex.recommendation.status|capitalize }}{% endif %}
                     </span>
                 </div>
 
                 <div class="exercise-summary-grid">
                     <div class="summary-pill">
                         <small>Target</small>
-                        <strong>{{ ex.target }}</strong>
+                        <strong>{{ ex.display_target }}</strong>
                     </div>
                     <div class="summary-pill">
                         <small>Sets / Prescription</small>
-                        <strong>{{ ex.sets }} x {{ ex.reps }}</strong>
+                        <strong>{{ ex.display_prescription }}</strong>
                     </div>
                     <div class="summary-pill">
                         <small>Primary purpose</small>
@@ -70,7 +70,7 @@
                 </div>
 
                 <div class="recommendation {{ ex.recommendation.status }}">
-                    <strong>TRIAD Recommendation</strong>
+                    <strong>{{ ex.recommendation.label }}</strong>
                     <p>{{ ex.recommendation.message }}</p>
                 </div>
 
@@ -97,18 +97,16 @@
             </div>
         </div>
 
-        <div class="machine-setup" data-exercise="{{ ex.name }}">
-            <div class="section-heading">
+        <details class="machine-setup" data-exercise="{{ ex.name }}" {% if ex.has_profile %}open{% endif %}>
+            <summary>
                 <div>
                     <strong>Machine Setup</strong>
-                    {% if ex.profile.updated_at %}
-                    <small>Saved {{ ex.profile.updated_at[:10] }}</small>
-                    {% else %}
-                    <small>No machine setup saved yet.</small>
-                    {% endif %}
+                    <small>{{ ex.profile_summary }}</small>
                 </div>
-                <button class="compact-button" onclick="saveMachineProfile(this)">Save Setup</button>
-            </div>
+                {% if ex.profile.updated_at %}
+                <span>Saved {{ ex.profile.updated_at[:10] }}</span>
+                {% endif %}
+            </summary>
 
             <div class="machine-profile-grid">
                 <input placeholder="Seat position" data-profile-field="seat_position" value="{{ ex.profile.seat_position or '' }}">
@@ -118,7 +116,8 @@
                 <input placeholder="Foot position" data-profile-field="foot_position" value="{{ ex.profile.foot_position or '' }}">
                 <textarea placeholder="Setup notes" data-profile-field="notes">{{ ex.profile.notes or '' }}</textarea>
             </div>
-        </div>
+            <button class="compact-button setup-save-button" onclick="saveMachineProfile(this)">Save Setup</button>
+        </details>
 
         {% if ex.history %}
         <details class="history-box">
