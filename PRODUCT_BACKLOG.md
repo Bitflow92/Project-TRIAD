@@ -52,6 +52,8 @@ Major capabilities:
 - [ ] Timed Exercise Support
 - [ ] Workout Draft Mode
 - [ ] Machine Profiles
+- [ ] Exercise Card Redesign
+- [ ] High-Quality Exercise Photography
 - [ ] Previous Machine Settings
 - [ ] Exercise Numbering
 - [ ] Rename Seated Cable Row → Low Row Machine
@@ -77,6 +79,62 @@ Only these items should be implemented unless the scope is deliberately expanded
 **Origin:** Sessions A & B
 
 ---
+
+### Exercise Card Redesign & High-Quality Photography
+- **Status:** Planned
+- **Category:** UI / Visual Design
+- **Target:** Release 2.7
+
+**Problem**
+
+Current exercise photos are temporary PDF extracts with inconsistent framing, white overlap backgrounds and unused screen space.
+
+**Solution**
+
+Redesign each exercise card using a responsive layout.
+
+Desktop:
+- Large machine photo on the left.
+- Coaching panel on the right showing:
+  - Primary purpose
+  - Coaching cue
+  - Previous machine settings
+  - Previous performance
+  - Recommended working weight
+  - Personal Best
+  - Technique video link
+
+Mobile:
+- Photo
+- Coaching information
+- Workout entry controls
+
+Use the high-resolution source images in:
+
+`reference/Release-2.7-photos/`
+
+Codex should optimise the images, create final web-ready versions in:
+
+`platform/app/static/images/machines/`
+
+and remove obsolete images no longer referenced by the application.
+
+**Benefits**
+
+- Premium visual appearance
+- Better machine recognition
+- Improved use of screen space
+- Cleaner mobile experience
+- Reduced cognitive load
+
+**Origin**
+
+- Session A
+- Session B
+- Product refinement discussions
+
+---
+
 
 ### Workout Draft Mode
 - **Status:** Planned
