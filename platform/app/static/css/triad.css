@@ -468,9 +468,8 @@ main {
 
 .exercise-image {
     width: 100%;
-    aspect-ratio: 4 / 3;
-    max-height: 430px;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
     object-position: center;
     border-radius: 18px;
     margin: 16px 0 0 0;
@@ -1020,7 +1019,7 @@ footer {
     }
 
     .exercise-image {
-        max-height: 260px;
+        max-height: none;
     }
 
     .exercise-summary-grid,

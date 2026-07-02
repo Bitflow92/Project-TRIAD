@@ -712,6 +712,17 @@ def clean_value(value):
     return str(value).strip()
 
 
+def static_image_version(image_path):
+    if not image_path:
+        return ""
+
+    full_path = os.path.join(app.static_folder, image_path)
+    try:
+        return str(int(os.path.getmtime(full_path)))
+    except OSError:
+        return ""
+
+
 @app.route("/")
 def index():
     user = current_user()
@@ -772,6 +783,7 @@ def gym():
         ex_copy = ex.copy()
         ex_copy["exercise_order"] = order
         ex_copy["exercise_type"] = ex_copy.get("exercise_type", "standard")
+        ex_copy["image_version"] = static_image_version(ex_copy.get("image"))
         ex_copy["input_placeholders"] = placeholders_for_exercise(ex_copy["exercise_type"])
         ex_copy["history"] = get_recent_history(ex_copy, user)
         ex_copy["personal_best"] = get_personal_best(ex_copy, user)

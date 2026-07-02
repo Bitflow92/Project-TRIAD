@@ -41,7 +41,7 @@
                 </div>
 
                 {% if ex.image %}
-                <img class="exercise-image" src="{{ url_for('static', filename=ex.image) }}" alt="{{ ex.name }}">
+                <img class="exercise-image" src="{{ url_for('static', filename=ex.image, v=ex.image_version) }}" alt="{{ ex.name }}">
                 {% endif %}
             </div>
 
