@@ -17,6 +17,7 @@ def env_or_default(name, default):
 
 
 DB = env_or_default("TRIAD_DB", "/instance/triad.db")
+APP_REVISION = env_or_default("TRIAD_APP_REVISION", "Release 2.7.1 • coaching-plans-20260702")
 
 # Production deployments must set TRIAD_SECRET_KEY and both password environment
 # variables. The fallback values below are temporary development defaults only.
@@ -35,7 +36,10 @@ def current_user():
 
 @app.context_processor
 def inject_current_user():
-    return {"current_user": current_user()}
+    return {
+        "current_user": current_user(),
+        "app_revision": APP_REVISION,
+    }
 
 
 def login_required(view):
