@@ -14,8 +14,7 @@
                 <th>Session</th>
                 <th>Exercise</th>
                 <th>Set</th>
-                <th>Weight</th>
-                <th>Reps</th>
+                <th>Details</th>
                 <th>RPE</th>
                 <th>Notes</th>
             </tr>
@@ -27,8 +26,13 @@
                 <td>{{ r.session }}</td>
                 <td>{{ r.exercise }}</td>
                 <td>{{ r.set_no }}</td>
-                <td>{{ r.weight }}</td>
-                <td>{{ r.reps }}</td>
+                <td>
+                    {% if r.weight %}<span class="log-detail">{{ r.weight }}</span>{% endif %}
+                    {% if r.reps %}<span class="log-detail">{{ r.reps }} reps</span>{% endif %}
+                    {% if r.duration %}<span class="log-detail">{{ r.duration }} sec</span>{% endif %}
+                    {% if r.distance %}<span class="log-detail">{{ r.distance }}</span>{% endif %}
+                    {% if not r.weight and not r.reps and not r.duration and not r.distance %}<span class="subtle">No details</span>{% endif %}
+                </td>
                 <td>{{ r.rpe }}</td>
                 <td>{{ r.notes }}</td>
             </tr>

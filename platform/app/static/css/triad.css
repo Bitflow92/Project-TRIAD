@@ -354,6 +354,13 @@ main {
     margin-bottom: 6px;
 }
 
+.workout-title {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+}
+
 .session-tabs {
     display: flex;
     gap: 10px;
@@ -380,6 +387,17 @@ main {
 .exercise-list {
     display: grid;
     gap: 26px;
+}
+
+.exercise-layout {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(260px, 0.92fr) minmax(300px, 1.08fr);
+}
+
+.exercise-photo-panel,
+.exercise-coaching-panel {
+    min-width: 0;
 }
 
 .exercise-header {
@@ -450,10 +468,12 @@ main {
 
 .exercise-image {
     width: 100%;
-    max-height: 340px;
-    object-fit: contain;
+    aspect-ratio: 4 / 3;
+    max-height: 430px;
+    object-fit: cover;
+    object-position: center;
     border-radius: 18px;
-    margin: 16px 0;
+    margin: 16px 0 0 0;
     border: 1px solid var(--border);
     background: #f4f7fb;
 }
@@ -521,7 +541,7 @@ main {
 
 .video-button {
     display: inline-block;
-    margin: 4px 0 14px 0;
+    margin: 4px 0 0 0;
     padding: 10px 14px;
     border-radius: 999px;
     background: var(--blue);
@@ -547,7 +567,13 @@ main {
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 14px;
-    margin-bottom: 16px;
+    margin: 16px 0;
+}
+
+.history-box summary {
+    color: var(--navy);
+    cursor: pointer;
+    font-weight: 800;
 }
 
 .previous-summary {
@@ -598,7 +624,7 @@ main {
 .set-grid {
     display: grid;
     gap: 12px;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 }
 
 .set-box {
@@ -632,8 +658,118 @@ button {
     font-weight: 700;
 }
 
+button:disabled {
+    cursor: wait;
+    opacity: 0.72;
+}
+
+.post-workout-button {
+    background: var(--green);
+    border-radius: 999px;
+    box-shadow: 0 8px 20px rgba(37, 99, 57, 0.18);
+    color: white;
+    flex: 0 0 auto;
+    font-size: 16px;
+    padding: 13px 18px;
+    width: auto;
+}
+
+.bottom-post-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    margin-top: 20px;
+    padding: 16px;
+    text-align: center;
+}
+
+.post-status {
+    border-radius: 14px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    padding: 0;
+}
+
+.post-status.success,
+.post-status.error {
+    padding: 12px 14px;
+}
+
+.post-status.success {
+    background: var(--success-bg);
+    color: var(--navy);
+}
+
+.post-status.error {
+    background: var(--warning-bg);
+    color: var(--danger);
+}
+
+.section-heading {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.section-heading strong {
+    color: var(--navy);
+    display: block;
+    font-size: 18px;
+}
+
+.section-heading small {
+    color: var(--muted);
+    display: block;
+    font-weight: 700;
+    margin-top: 3px;
+}
+
+.compact-button {
+    border-radius: 999px;
+    flex: 0 0 auto;
+    padding: 9px 13px;
+    width: auto;
+}
+
+.machine-setup {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    margin-top: 16px;
+    padding: 14px;
+}
+
+.machine-profile-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.machine-profile-grid input,
+.machine-profile-grid textarea {
+    margin-bottom: 0;
+}
+
+.machine-profile-grid textarea {
+    grid-column: span 3;
+    min-height: 70px;
+}
+
 .log-table {
     overflow-x: auto;
+}
+
+.log-detail {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    display: inline-block;
+    font-weight: 700;
+    margin: 2px 4px 2px 0;
+    padding: 4px 8px;
+    white-space: nowrap;
 }
 
 table {
@@ -690,6 +826,13 @@ th {
     display: block;
     font-size: 24px;
     overflow-wrap: anywhere;
+}
+
+.admin-stat span {
+    color: var(--muted);
+    display: block;
+    font-size: 14px;
+    margin-top: 4px;
 }
 
 .admin-actions {
@@ -850,13 +993,26 @@ footer {
         grid-template-columns: 1fr;
     }
 
-    .exercise-header {
+    .workout-title,
+    .exercise-header,
+    .section-heading {
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .top-post-button,
+    .post-workout-button,
+    .compact-button {
+        width: 100%;
     }
 
     .exercise-card {
         border-radius: 18px;
         padding: 16px;
+    }
+
+    .exercise-layout {
+        grid-template-columns: 1fr;
     }
 
     .exercise-header h2 {
@@ -868,8 +1024,13 @@ footer {
     }
 
     .exercise-summary-grid,
+    .machine-profile-grid,
     .set-grid {
         grid-template-columns: 1fr;
+    }
+
+    .machine-profile-grid textarea {
+        grid-column: auto;
     }
 
     .admin-title {

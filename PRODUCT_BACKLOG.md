@@ -21,7 +21,7 @@ Primary objectives:
 
 # Current Release
 
-**Release:** 2.6  
+**Release:** 2.7  
 **Status:** Stable
 
 Major capabilities:
@@ -30,6 +30,10 @@ Major capabilities:
 - Individual athlete data
 - Personal Best tracking
 - Workout history
+- Workout draft mode
+- Timed exercise and loaded carry logging
+- Machine setup profiles
+- Exercise-specific coaching cards
 - Dashboard
 - Administration
 - Docker deployment
@@ -37,29 +41,37 @@ Major capabilities:
 
 ---
 
-# Next Planned Release
+# Release History
 
 ## Release 2.7
 
 **Theme:** Workout Experience & Coaching Intelligence
 
-**Status:** Planning
+**Status:** Completed
+
+Completed:
+
+- [x] Timed Exercise Support
+- [x] Workout Draft Mode
+- [x] Machine Profiles
+- [x] Exercise Card Redesign
+- [x] High-Quality Exercise Photography
+- [x] Previous Machine Settings
+- [x] Exercise Numbering
+- [x] Rename Seated Cable Row → Low Row Machine
+- [x] Duplicate Entry Protection
+
+---
+
+# Next Planned Release
+
+Release 2.8 remains open for prioritisation.
 
 ---
 
 # Ready for Codex
 
-- [ ] Timed Exercise Support
-- [ ] Workout Draft Mode
-- [ ] Machine Profiles
-- [ ] Exercise Card Redesign
-- [ ] High-Quality Exercise Photography
-- [ ] Previous Machine Settings
-- [ ] Exercise Numbering
-- [ ] Rename Seated Cable Row → Low Row Machine
-- [ ] Duplicate Entry Protection
-
-Only these items should be implemented unless the scope is deliberately expanded.
+No scoped implementation items are currently queued.
 
 ---
 
@@ -68,7 +80,7 @@ Only these items should be implemented unless the scope is deliberately expanded
 ## High Priority
 
 ### Timed Exercise Support
-- **Status:** Planned
+- **Status:** Completed in Release 2.7
 - **Category:** Workout UX
 - **Target:** Release 2.7
 
@@ -81,7 +93,7 @@ Only these items should be implemented unless the scope is deliberately expanded
 ---
 
 ### Exercise Card Redesign & High-Quality Photography
-- **Status:** Planned
+- **Status:** Completed in Release 2.7
 - **Category:** UI / Visual Design
 - **Target:** Release 2.7
 
@@ -137,7 +149,7 @@ and remove obsolete images no longer referenced by the application.
 
 
 ### Workout Draft Mode
-- **Status:** Planned
+- **Status:** Completed in Release 2.7
 - **Category:** Data Entry
 - **Target:** Release 2.7
 
@@ -156,7 +168,7 @@ and remove obsolete images no longer referenced by the application.
 ---
 
 ### Machine Profiles
-- **Status:** Planned
+- **Status:** Completed in Release 2.7
 - **Category:** Coaching
 - **Target:** Release 2.7
 
@@ -174,7 +186,7 @@ Automatically display these during future workouts.
 ---
 
 ### Previous Machine Settings
-- **Status:** Planned
+- **Status:** Completed in Release 2.7
 - **Category:** Coaching
 - **Target:** Release 2.7
 
@@ -185,6 +197,8 @@ Automatically display previous setup and previous working weight before each exe
 ---
 
 ### Exercise Numbering
+- **Status:** Completed in Release 2.7
+
 Target: Release 2.7
 
 Display exercises as 1, 2, 3...
@@ -194,6 +208,8 @@ Origin: Session A
 ---
 
 ### Rename Seated Cable Row
+- **Status:** Completed in Release 2.7
+
 Target: Release 2.7
 
 Rename to **Low Row Machine**.
@@ -203,6 +219,8 @@ Origin: Session A
 ---
 
 ### Duplicate Entry Protection
+- **Status:** Completed in Release 2.7
+
 Target: Release 2.7
 
 Prevent accidental multiple submissions.

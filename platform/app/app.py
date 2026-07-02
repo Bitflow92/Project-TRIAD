@@ -78,10 +78,52 @@ def init_db():
         columns = [row[1] for row in con.execute("PRAGMA table_info(exercise_logs)").fetchall()]
         if "user" not in columns:
             con.execute("ALTER TABLE exercise_logs ADD COLUMN user TEXT")
+        if "exercise_type" not in columns:
+            con.execute("ALTER TABLE exercise_logs ADD COLUMN exercise_type TEXT")
+        if "duration" not in columns:
+            con.execute("ALTER TABLE exercise_logs ADD COLUMN duration TEXT")
+        if "distance" not in columns:
+            con.execute("ALTER TABLE exercise_logs ADD COLUMN distance TEXT")
+        if "exercise_order" not in columns:
+            con.execute("ALTER TABLE exercise_logs ADD COLUMN exercise_order INTEGER")
         con.execute("""
         UPDATE exercise_logs
         SET user = 'Rynier'
         WHERE user IS NULL OR TRIM(user) = ''
+        """)
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS workout_drafts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user TEXT NOT NULL,
+            session TEXT NOT NULL,
+            exercise TEXT NOT NULL,
+            exercise_order INTEGER,
+            set_no INTEGER NOT NULL,
+            exercise_type TEXT,
+            weight TEXT,
+            reps TEXT,
+            duration TEXT,
+            distance TEXT,
+            rpe TEXT,
+            notes TEXT,
+            updated_at TEXT,
+            UNIQUE(user, session, exercise, set_no)
+        )
+        """)
+        con.execute("""
+        CREATE TABLE IF NOT EXISTS machine_profiles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user TEXT NOT NULL,
+            exercise TEXT NOT NULL,
+            seat_position TEXT,
+            cable_height TEXT,
+            backrest_position TEXT,
+            handle_attachment TEXT,
+            foot_position TEXT,
+            notes TEXT,
+            updated_at TEXT,
+            UNIQUE(user, exercise)
+        )
         """)
 
 
@@ -92,6 +134,7 @@ EXERCISES = [
     {
         "session": "A",
         "name": "Plate Loaded Pulldown",
+        "exercise_type": "standard",
         "machine": "Pulldown",
         "target": "40 kg",
         "sets": 3,
@@ -105,6 +148,7 @@ EXERCISES = [
     {
         "session": "A",
         "name": "Pullover",
+        "exercise_type": "standard",
         "machine": "Pullover",
         "target": "20 kg",
         "sets": 3,
@@ -117,25 +161,28 @@ EXERCISES = [
     },
     {
         "session": "A",
-        "name": "Seated Cable Row",
+        "name": "Low Row Machine",
+        "aliases": ["Seated Cable Row"],
+        "exercise_type": "standard",
         "machine": "Low Row #2",
         "target": "35 kg",
         "sets": 3,
         "reps": 8,
-        "image": "images/machines/low_row_2.jpg",
-        "video": "https://www.youtube.com/results?search_query=seated+cable+row+proper+form",
-        "purpose": "Mid-back and scapular strength",
+        "image": "images/machines/low_row_machine.jpg",
+        "video": "https://www.youtube.com/results?search_query=low+row+machine+seated+row+proper+form",
+        "purpose": "Horizontal Pull / Seated Row Pattern",
         "cue": "Sit tall and squeeze the shoulder blades together.",
         "mistakes": ["Rounding the back", "Shrugging", "Jerking the weight", "Leaning too far back"]
     },
     {
         "session": "A",
         "name": "Chest Press",
+        "exercise_type": "standard",
         "machine": "Chest Press #2",
         "target": "30 kg",
         "sets": 3,
         "reps": 8,
-        "image": "images/machines/chest_press_2.jpg",
+        "image": "images/machines/chest_press.jpg",
         "video": "https://www.youtube.com/results?search_query=plate+loaded+chest+press+proper+form",
         "purpose": "Upper-body pressing balance and shoulder stability",
         "cue": "Control the return and keep shoulders down.",
@@ -144,11 +191,12 @@ EXERCISES = [
     {
         "session": "A",
         "name": "Shoulder Press",
+        "exercise_type": "standard",
         "machine": "Shoulder Press #2",
         "target": "20 kg",
         "sets": 3,
         "reps": 8,
-        "image": "images/machines/shoulder_press_2.jpg",
+        "image": "images/machines/shoulder_press.jpg",
         "video": "https://www.youtube.com/results?search_query=machine+shoulder+press+proper+form",
         "purpose": "Shoulder strength and upper-body durability",
         "cue": "Press smoothly without locking the elbows hard.",
@@ -157,6 +205,7 @@ EXERCISES = [
     {
         "session": "A",
         "name": "Triceps Pushdown",
+        "exercise_type": "standard",
         "machine": "Functional Trainer",
         "target": "22.5 kg",
         "sets": 3,
@@ -170,6 +219,7 @@ EXERCISES = [
     {
         "session": "A",
         "name": "Face Pull",
+        "exercise_type": "standard",
         "machine": "Functional Trainer",
         "target": "Light",
         "sets": 2,
@@ -183,6 +233,7 @@ EXERCISES = [
     {
         "session": "A",
         "name": "External Rotation",
+        "exercise_type": "standard",
         "machine": "Functional Trainer",
         "target": "Light",
         "sets": 2,
@@ -196,6 +247,7 @@ EXERCISES = [
     {
         "session": "A",
         "name": "Pallof Press",
+        "exercise_type": "standard",
         "machine": "Functional Trainer",
         "target": "Light",
         "sets": 3,
@@ -210,11 +262,12 @@ EXERCISES = [
     {
         "session": "B",
         "name": "Lat Pulldown",
+        "exercise_type": "standard",
         "machine": "Lat Machine",
         "target": "40 kg",
         "sets": 3,
         "reps": 8,
-        "image": "images/machines/lat_machine.jpg",
+        "image": "images/machines/lat_pulldown.jpg",
         "video": "https://www.youtube.com/results?search_query=lat+pulldown+proper+form",
         "purpose": "Lat and upper-back strength to support swimming and posture",
         "cue": "Pull elbows down towards your ribs.",
@@ -223,6 +276,7 @@ EXERCISES = [
     {
         "session": "B",
         "name": "Deadlift Machine",
+        "exercise_type": "standard",
         "machine": "Deadlift",
         "target": "40 kg",
         "sets": 3,
@@ -236,6 +290,7 @@ EXERCISES = [
     {
         "session": "B",
         "name": "Hip Thrust",
+        "exercise_type": "standard",
         "machine": "Hip Thrust",
         "target": "40 kg",
         "sets": 3,
@@ -249,6 +304,7 @@ EXERCISES = [
     {
         "session": "B",
         "name": "Leg Press",
+        "exercise_type": "standard",
         "machine": "Leg Press #2",
         "target": "70 kg",
         "sets": 3,
@@ -262,6 +318,7 @@ EXERCISES = [
     {
         "session": "B",
         "name": "Hack Squat",
+        "exercise_type": "standard",
         "machine": "Hack Squat",
         "target": "20 kg",
         "sets": 3,
@@ -275,6 +332,7 @@ EXERCISES = [
     {
         "session": "B",
         "name": "Leg Curl",
+        "exercise_type": "standard",
         "machine": "Leg Curl",
         "target": "40 kg",
         "sets": 3,
@@ -288,6 +346,7 @@ EXERCISES = [
     {
         "session": "B",
         "name": "Standing Calf Raise",
+        "exercise_type": "standard",
         "machine": "Standing Calf Raise",
         "target": "65 kg",
         "sets": 4,
@@ -301,11 +360,12 @@ EXERCISES = [
     {
         "session": "B",
         "name": "Farmer's Carry",
+        "exercise_type": "loaded_carry",
         "machine": "Dumbbells",
         "target": "20 kg/hand",
         "sets": 3,
         "reps": "30 m",
-        "image": "",
+        "image": "images/machines/farmers_carry.jpg",
         "video": "https://www.youtube.com/results?search_query=farmers+carry+proper+form",
         "purpose": "Grip, posture and core stability under load",
         "cue": "Walk tall with shoulders down.",
@@ -315,6 +375,7 @@ EXERCISES = [
     {
         "session": "Both",
         "name": "Front Plank",
+        "exercise_type": "timed",
         "machine": "Floor",
         "target": "60 sec",
         "sets": 3,
@@ -328,6 +389,7 @@ EXERCISES = [
     {
         "session": "Both",
         "name": "Side Plank",
+        "exercise_type": "timed",
         "machine": "Floor",
         "target": "30 sec/side",
         "sets": 3,
@@ -341,6 +403,7 @@ EXERCISES = [
     {
         "session": "Both",
         "name": "Dead Hang",
+        "exercise_type": "timed",
         "machine": "Pull-up Bar",
         "target": "30 sec",
         "sets": 3,
@@ -354,17 +417,36 @@ EXERCISES = [
 ]
 
 
-def get_recent_history(exercise_name, user, limit=3):
+def exercise_names_for_history(exercise):
+    return [exercise["name"]] + exercise.get("aliases", [])
+
+
+def placeholders_for_exercise(exercise_type):
+    if exercise_type == "timed":
+        return {"duration": "Duration (sec)", "rpe": "RPE", "notes": "Notes"}
+    if exercise_type == "loaded_carry":
+        return {"weight": "Weight", "distance": "Distance / Time", "rpe": "RPE", "notes": "Notes"}
+    if exercise_type == "bodyweight":
+        return {"reps": "Reps", "rpe": "RPE", "notes": "Notes"}
+    return {"weight": "Weight", "reps": "Reps", "rpe": "RPE", "notes": "Notes"}
+
+
+def rows_for_exercise_query(exercise_names):
+    return ",".join("?" for _ in exercise_names)
+
+
+def get_recent_history(exercise, user, limit=3):
+    exercise_names = exercise_names_for_history(exercise)
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         rows = con.execute("""
-        SELECT created_at, session, exercise, set_no, weight, reps, rpe, notes
+        SELECT created_at, session, exercise, set_no, exercise_type, weight, reps, duration, distance, rpe, notes
         FROM exercise_logs
-        WHERE exercise = ?
+        WHERE exercise IN ({})
           AND user = ?
         ORDER BY id DESC
         LIMIT ?
-        """, (exercise_name, user, limit * 4)).fetchall()
+        """.format(rows_for_exercise_query(exercise_names)), (*exercise_names, user, limit * 4)).fetchall()
 
     return [dict(r) for r in rows]
 
@@ -444,14 +526,15 @@ def get_dashboard_data(user):
     }
 
 
-def get_personal_best(exercise_name, user):
+def get_personal_best(exercise, user):
+    exercise_names = exercise_names_for_history(exercise)
     with sqlite3.connect(DB) as con:
         rows = con.execute("""
         SELECT weight
         FROM exercise_logs
-        WHERE exercise = ?
+        WHERE exercise IN ({})
           AND user = ?
-        """, (exercise_name, user)).fetchall()
+        """.format(rows_for_exercise_query(exercise_names)), (*exercise_names, user)).fetchall()
 
     best = None
     for row in rows:
@@ -465,34 +548,37 @@ def get_personal_best(exercise_name, user):
     }
 
 
-def get_previous_session_summary(exercise_name, user):
+def get_previous_session_summary(exercise, user):
+    exercise_names = exercise_names_for_history(exercise)
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         latest = con.execute("""
         SELECT substr(created_at, 1, 10) AS workout_date
         FROM exercise_logs
-        WHERE exercise = ?
+        WHERE exercise IN ({})
           AND user = ?
         ORDER BY id DESC
         LIMIT 1
-        """, (exercise_name, user)).fetchone()
+        """.format(rows_for_exercise_query(exercise_names)), (*exercise_names, user)).fetchone()
 
         if not latest:
             return None
 
         rows = con.execute("""
-        SELECT created_at, weight, reps, rpe
+        SELECT created_at, weight, reps, duration, distance, rpe
         FROM exercise_logs
-        WHERE exercise = ?
+        WHERE exercise IN ({})
           AND user = ?
           AND substr(created_at, 1, 10) = ?
         ORDER BY id ASC
-        """, (exercise_name, user, latest["workout_date"])).fetchall()
+        """.format(rows_for_exercise_query(exercise_names)), (*exercise_names, user, latest["workout_date"])).fetchall()
 
     weights = [parse_numeric_weight(r["weight"]) for r in rows]
     numeric_weights = [w for w in weights if w is not None]
     reps = [parse_float(r["reps"]) for r in rows]
     numeric_reps = [r for r in reps if r is not None]
+    durations = [parse_float(r["duration"]) for r in rows]
+    numeric_durations = [d for d in durations if d is not None]
     rpes = [parse_float(r["rpe"]) for r in rows]
     numeric_rpes = [r for r in rpes if r is not None]
 
@@ -501,17 +587,30 @@ def get_previous_session_summary(exercise_name, user):
         "best_weight": f"{format_number(max(numeric_weights))} kg" if numeric_weights else "No numeric weight",
         "total_sets": len(rows),
         "avg_reps": format_number(sum(numeric_reps) / len(numeric_reps)) if numeric_reps else "N/A",
+        "avg_duration": f"{format_number(sum(numeric_durations) / len(numeric_durations))} sec" if numeric_durations else "N/A",
         "avg_rpe": format_number(sum(numeric_rpes) / len(numeric_rpes)) if numeric_rpes else "N/A",
     }
 
 
 def get_recommendation(exercise, user):
-    rows = get_recent_history(exercise["name"], user, limit=1)
+    rows = get_recent_history(exercise, user, limit=1)
 
     if not rows:
         return {
             "status": "start",
             "message": "Start with the planned target and focus on controlled technique."
+        }
+
+    if exercise.get("exercise_type") == "timed":
+        return {
+            "status": "repeat",
+            "message": "Repeat the current duration until the hold feels calmer and RPE trends down."
+        }
+
+    if exercise.get("exercise_type") == "loaded_carry":
+        return {
+            "status": "repeat",
+            "message": "Repeat the current carry and keep posture, distance/time and RPE consistent before progressing."
         }
 
     latest_date = rows[0]["created_at"][:10]
@@ -567,6 +666,52 @@ def get_recommendation(exercise, user):
     }
 
 
+def get_workout_drafts(user, selected_session):
+    with sqlite3.connect(DB) as con:
+        con.row_factory = sqlite3.Row
+        rows = con.execute("""
+        SELECT *
+        FROM workout_drafts
+        WHERE user = ?
+          AND session = ?
+        """, (user, selected_session)).fetchall()
+
+    return {(row["exercise"], row["set_no"]): dict(row) for row in rows}
+
+
+def get_machine_profiles(user):
+    with sqlite3.connect(DB) as con:
+        con.row_factory = sqlite3.Row
+        rows = con.execute("""
+        SELECT *
+        FROM machine_profiles
+        WHERE user = ?
+        """, (user,)).fetchall()
+
+    return {row["exercise"]: dict(row) for row in rows}
+
+
+def find_exercise(selected_session, exercise_name):
+    for order, exercise in enumerate(exercises_for_session(selected_session), start=1):
+        if exercise["name"] == exercise_name or exercise_name in exercise.get("aliases", []):
+            exercise_copy = exercise.copy()
+            exercise_copy["exercise_order"] = order
+            return exercise_copy
+    return None
+
+
+def exercises_for_session(selected_session):
+    if selected_session == "C":
+        return [e for e in EXERCISES if e["session"] == "Both"]
+    return [e for e in EXERCISES if e["session"] == selected_session or e["session"] == "Both"]
+
+
+def clean_value(value):
+    if value is None:
+        return ""
+    return str(value).strip()
+
+
 @app.route("/")
 def index():
     user = current_user()
@@ -610,28 +755,39 @@ def logout():
 @login_required
 def gym():
     user = current_user()
-    session = request.args.get("session", "A")
+    selected_session = request.args.get("session", "A")
+    if selected_session not in {"A", "B", "C"}:
+        selected_session = "A"
 
-    if session == "C":
-        filtered = [e for e in EXERCISES if e["session"] == "Both"]
+    if selected_session == "C":
         title = "Session C – Core, Mobility & Finishers"
     else:
-        filtered = [e for e in EXERCISES if e["session"] == session or e["session"] == "Both"]
-        title = f"Session {session}"
+        title = f"Session {selected_session}"
 
+    filtered = exercises_for_session(selected_session)
+    drafts = get_workout_drafts(user, selected_session)
+    profiles = get_machine_profiles(user)
     enriched = []
-    for ex in filtered:
+    for order, ex in enumerate(filtered, start=1):
         ex_copy = ex.copy()
-        ex_copy["history"] = get_recent_history(ex["name"], user)
-        ex_copy["personal_best"] = get_personal_best(ex["name"], user)
-        ex_copy["previous_summary"] = get_previous_session_summary(ex["name"], user)
+        ex_copy["exercise_order"] = order
+        ex_copy["exercise_type"] = ex_copy.get("exercise_type", "standard")
+        ex_copy["input_placeholders"] = placeholders_for_exercise(ex_copy["exercise_type"])
+        ex_copy["history"] = get_recent_history(ex_copy, user)
+        ex_copy["personal_best"] = get_personal_best(ex_copy, user)
+        ex_copy["previous_summary"] = get_previous_session_summary(ex_copy, user)
         ex_copy["recommendation"] = get_recommendation(ex, user)
+        ex_copy["profile"] = profiles.get(ex_copy["name"], {})
+        ex_copy["draft_sets"] = {
+            set_no: drafts.get((ex_copy["name"], set_no), {})
+            for set_no in range(1, ex_copy["sets"] + 1)
+        }
         enriched.append(ex_copy)
 
     return render_template(
         "gym.html",
         exercises=enriched,
-        selected_session=session,
+        selected_session=selected_session,
         title=title
     )
 
@@ -640,24 +796,149 @@ def gym():
 @login_required
 def save_log():
     user = current_user()
-    data = request.json
+    data = request.json or {}
+    selected_session = clean_value(data.get("session"))
+    exercise_name = clean_value(data.get("exercise"))
+    exercise = find_exercise(selected_session, exercise_name)
+    if not exercise:
+        return jsonify({"status": "error", "message": "Unknown exercise"}), 400
+
+    set_no = data.get("set_no")
+    try:
+        set_no = int(set_no)
+    except (TypeError, ValueError):
+        return jsonify({"status": "error", "message": "Invalid set number"}), 400
+
+    if set_no < 1 or set_no > exercise["sets"]:
+        return jsonify({"status": "error", "message": "Invalid set number"}), 400
+
+    now = datetime.now().isoformat(timespec="seconds")
     with sqlite3.connect(DB) as con:
         con.execute("""
-        INSERT INTO exercise_logs
-        (created_at, user, session, exercise, set_no, weight, reps, rpe, notes)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO workout_drafts
+        (user, session, exercise, exercise_order, set_no, exercise_type, weight, reps, duration, distance, rpe, notes, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(user, session, exercise, set_no) DO UPDATE SET
+            exercise_order = excluded.exercise_order,
+            exercise_type = excluded.exercise_type,
+            weight = excluded.weight,
+            reps = excluded.reps,
+            duration = excluded.duration,
+            distance = excluded.distance,
+            rpe = excluded.rpe,
+            notes = excluded.notes,
+            updated_at = excluded.updated_at
         """, (
-            datetime.now().isoformat(timespec="seconds"),
             user,
-            data.get("session"),
-            data.get("exercise"),
-            data.get("set_no"),
-            data.get("weight"),
-            data.get("reps"),
-            data.get("rpe"),
-            data.get("notes"),
+            selected_session,
+            exercise["name"],
+            exercise["exercise_order"],
+            set_no,
+            exercise.get("exercise_type", "standard"),
+            clean_value(data.get("weight")),
+            clean_value(data.get("reps")),
+            clean_value(data.get("duration")),
+            clean_value(data.get("distance")),
+            clean_value(data.get("rpe")),
+            clean_value(data.get("notes")),
+            now,
         ))
-    return jsonify({"status": "saved"})
+    return jsonify({"status": "draft_saved", "updated_at": now})
+
+
+@app.route("/api/post-workout", methods=["POST"])
+@login_required
+def post_workout():
+    user = current_user()
+    data = request.json or {}
+    selected_session = clean_value(data.get("session"))
+    if selected_session not in {"A", "B", "C"}:
+        return jsonify({"status": "error", "message": "Invalid session"}), 400
+
+    posted_at = datetime.now().isoformat(timespec="seconds")
+    with sqlite3.connect(DB) as con:
+        rows = con.execute("""
+        SELECT session, exercise, exercise_order, set_no, exercise_type, weight, reps, duration, distance, rpe, notes
+        FROM workout_drafts
+        WHERE user = ?
+          AND session = ?
+        ORDER BY exercise_order ASC, set_no ASC
+        """, (user, selected_session)).fetchall()
+
+        if not rows:
+            return jsonify({"status": "empty", "message": "No draft sets to post."}), 400
+
+        con.executemany("""
+        INSERT INTO exercise_logs
+        (created_at, user, session, exercise, exercise_order, set_no, exercise_type, weight, reps, duration, distance, rpe, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, [
+            (
+                posted_at,
+                user,
+                row[0],
+                row[1],
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
+                row[7],
+                row[8],
+                row[9],
+                row[10],
+            )
+            for row in rows
+        ])
+        con.execute("""
+        DELETE FROM workout_drafts
+        WHERE user = ?
+          AND session = ?
+        """, (user, selected_session))
+
+    return jsonify({"status": "posted", "posted_sets": len(rows)})
+
+
+@app.route("/api/machine-profile", methods=["POST"])
+@login_required
+def save_machine_profile():
+    user = current_user()
+    data = request.json or {}
+    exercise_name = clean_value(data.get("exercise"))
+    if not exercise_name:
+        return jsonify({"status": "error", "message": "Missing exercise"}), 400
+
+    known_names = {exercise["name"] for exercise in EXERCISES}
+    if exercise_name not in known_names:
+        return jsonify({"status": "error", "message": "Unknown exercise"}), 400
+
+    now = datetime.now().isoformat(timespec="seconds")
+    with sqlite3.connect(DB) as con:
+        con.execute("""
+        INSERT INTO machine_profiles
+        (user, exercise, seat_position, cable_height, backrest_position, handle_attachment, foot_position, notes, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(user, exercise) DO UPDATE SET
+            seat_position = excluded.seat_position,
+            cable_height = excluded.cable_height,
+            backrest_position = excluded.backrest_position,
+            handle_attachment = excluded.handle_attachment,
+            foot_position = excluded.foot_position,
+            notes = excluded.notes,
+            updated_at = excluded.updated_at
+        """, (
+            user,
+            exercise_name,
+            clean_value(data.get("seat_position")),
+            clean_value(data.get("cable_height")),
+            clean_value(data.get("backrest_position")),
+            clean_value(data.get("handle_attachment")),
+            clean_value(data.get("foot_position")),
+            clean_value(data.get("notes")),
+            now,
+        ))
+
+    return jsonify({"status": "profile_saved", "updated_at": now})
 
 
 @app.route("/log")
@@ -667,7 +948,7 @@ def view_log():
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         rows = con.execute("""
-        SELECT created_at, session, exercise, set_no, weight, reps, rpe, notes
+        SELECT created_at, session, exercise, exercise_order, set_no, exercise_type, weight, reps, duration, distance, rpe, notes
         FROM exercise_logs
         WHERE user = ?
         ORDER BY id DESC
@@ -687,14 +968,20 @@ def admin():
             MAX(created_at) AS latest_entry
         FROM exercise_logs
         """).fetchone()
+        draft_stats = con.execute("""
+        SELECT COUNT(*) AS total_drafts, COUNT(DISTINCT user || ':' || session) AS active_sessions
+        FROM workout_drafts
+        """).fetchone()
 
     db_size_kb = round(os.path.getsize(DB) / 1024, 1) if os.path.exists(DB) else 0
 
     return render_template(
         "admin.html",
         stats=stats,
+        draft_stats=draft_stats,
         db_size_kb=db_size_kb,
-        cleared=request.args.get("cleared") == "1"
+        cleared=request.args.get("cleared") == "1",
+        drafts_cleared=request.args.get("drafts_cleared") == "1"
     )
 
 
@@ -704,23 +991,27 @@ def export_workout_csv():
     with sqlite3.connect(DB) as con:
         con.row_factory = sqlite3.Row
         rows = con.execute("""
-        SELECT created_at, user, session, exercise, set_no, weight, reps, rpe, notes
+        SELECT created_at, user, session, exercise, exercise_order, set_no, exercise_type, weight, reps, duration, distance, rpe, notes
         FROM exercise_logs
         ORDER BY id ASC
         """).fetchall()
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["created_at", "user", "session", "exercise", "set_no", "weight", "reps", "rpe", "notes"])
+    writer.writerow(["created_at", "user", "session", "exercise", "exercise_order", "set_no", "exercise_type", "weight", "reps", "duration", "distance", "rpe", "notes"])
     for row in rows:
         writer.writerow([
             row["created_at"],
             row["user"],
             row["session"],
             row["exercise"],
+            row["exercise_order"],
             row["set_no"],
+            row["exercise_type"],
             row["weight"],
             row["reps"],
+            row["duration"],
+            row["distance"],
             row["rpe"],
             row["notes"],
         ])
@@ -745,5 +1036,16 @@ def clear_workout_history():
         with sqlite3.connect(DB) as con:
             con.execute("DELETE FROM exercise_logs")
         return redirect(url_for("admin", cleared="1"))
+
+    return redirect(url_for("admin"))
+
+
+@app.route("/admin/clear-drafts", methods=["POST"])
+@rynier_required
+def clear_workout_drafts():
+    if request.form.get("confirm_clear_drafts") == "yes":
+        with sqlite3.connect(DB) as con:
+            con.execute("DELETE FROM workout_drafts")
+        return redirect(url_for("admin", drafts_cleared="1"))
 
     return redirect(url_for("admin"))

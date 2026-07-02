@@ -1,17 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="page-title">
-    <h1>{{ title }}</h1>
-    <p>
-        {% if selected_session == "A" %}
-        Swim & Upper Body Strength
-        {% elif selected_session == "B" %}
-        Bike & Run Strength
-        {% else %}
-        Core, Mobility & Daily Three
-        {% endif %}
-    </p>
+<section class="page-title workout-title">
+    <div>
+        <h1>{{ title }}</h1>
+        <p>
+            {% if selected_session == "A" %}
+            Swim & Upper Body Strength
+            {% elif selected_session == "B" %}
+            Bike & Run Strength
+            {% else %}
+            Core, Mobility & Daily Three
+            {% endif %}
+        </p>
+    </div>
+    <button class="post-workout-button top-post-button" data-session="{{ selected_session }}" onclick="postWorkout(this)">
+        Post Workout
+    </button>
 </section>
 
 <section class="session-tabs">
@@ -20,91 +25,111 @@
     <a class="{% if selected_session == 'C' %}active{% endif %}" href="/gym?session=C">Session C</a>
 </section>
 
+<div class="post-status" id="post-status" aria-live="polite"></div>
+
 <div class="exercise-list">
     {% for ex in exercises %}
     <section class="exercise-card">
-        <div class="exercise-header">
-            <div>
-                <h2>{{ ex.name }}</h2>
-                <p class="subtle">{{ ex.machine }}</p>
+        <div class="exercise-layout">
+            <div class="exercise-photo-panel">
+                <div class="exercise-header">
+                    <div>
+                        <h2>{{ ex.exercise_order }}. {{ ex.name }}</h2>
+                        <p class="subtle">{{ ex.machine }}</p>
+                    </div>
+                    <span>{{ ex.exercise_type|replace("_", " ")|title }}</span>
+                </div>
+
+                {% if ex.image %}
+                <img class="exercise-image" src="{{ url_for('static', filename=ex.image) }}" alt="{{ ex.name }}">
+                {% endif %}
             </div>
-            <span>Session {{ ex.session }}</span>
-        </div>
 
-        <div class="progress-badges">
-            <span class="progress-badge pb-badge">PB: {{ ex.personal_best.label }}</span>
-            <span class="progress-badge">Last session: {{ ex.previous_summary.date if ex.previous_summary else "No history yet" }}</span>
-            <span class="progress-badge recommendation-badge {{ ex.recommendation.status }}">
-                {{ ex.recommendation.status|capitalize }}
-            </span>
-        </div>
+            <div class="exercise-coaching-panel">
+                <div class="progress-badges">
+                    <span class="progress-badge pb-badge">PB: {{ ex.personal_best.label }}</span>
+                    <span class="progress-badge">Last session: {{ ex.previous_summary.date if ex.previous_summary else "No history yet" }}</span>
+                    <span class="progress-badge recommendation-badge {{ ex.recommendation.status }}">
+                        {{ ex.recommendation.status|capitalize }}
+                    </span>
+                </div>
 
-        {% if ex.image %}
-        <img class="exercise-image" src="{{ url_for('static', filename=ex.image) }}" alt="{{ ex.name }}">
-        {% endif %}
+                <div class="exercise-summary-grid">
+                    <div class="summary-pill">
+                        <small>Target</small>
+                        <strong>{{ ex.target }}</strong>
+                    </div>
+                    <div class="summary-pill">
+                        <small>Sets / Prescription</small>
+                        <strong>{{ ex.sets }} x {{ ex.reps }}</strong>
+                    </div>
+                    <div class="summary-pill">
+                        <small>Primary purpose</small>
+                        <strong>{{ ex.purpose }}</strong>
+                    </div>
+                </div>
 
-        <div class="exercise-summary-grid">
-            <div class="summary-pill">
-                <small>Target</small>
-                <strong>{{ ex.target }}</strong>
+                <div class="recommendation {{ ex.recommendation.status }}">
+                    <strong>TRIAD Recommendation</strong>
+                    <p>{{ ex.recommendation.message }}</p>
+                </div>
+
+                <div class="exercise-meta">
+                    <p><strong>Coaching cue:</strong> {{ ex.cue }}</p>
+                    {% if ex.video %}
+                    <a class="video-button" href="{{ ex.video }}" target="_blank">Technique video</a>
+                    {% endif %}
+                </div>
+
+                {% if ex.previous_summary %}
+                <div class="previous-summary">
+                    <strong>Previous session summary</strong>
+                    <div class="previous-summary-grid">
+                        <span><small>Date</small>{{ ex.previous_summary.date }}</span>
+                        <span><small>Best weight</small>{{ ex.previous_summary.best_weight }}</span>
+                        <span><small>Sets</small>{{ ex.previous_summary.total_sets }}</span>
+                        <span><small>Avg reps</small>{{ ex.previous_summary.avg_reps }}</span>
+                        <span><small>Avg duration</small>{{ ex.previous_summary.avg_duration }}</span>
+                        <span><small>Avg RPE</small>{{ ex.previous_summary.avg_rpe }}</span>
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            <div class="summary-pill">
-                <small>Sets/Reps</small>
-                <strong>{{ ex.sets }} x {{ ex.reps }}</strong>
+        </div>
+
+        <div class="machine-setup" data-exercise="{{ ex.name }}">
+            <div class="section-heading">
+                <div>
+                    <strong>Machine Setup</strong>
+                    {% if ex.profile.updated_at %}
+                    <small>Saved {{ ex.profile.updated_at[:10] }}</small>
+                    {% else %}
+                    <small>No machine setup saved yet.</small>
+                    {% endif %}
+                </div>
+                <button class="compact-button" onclick="saveMachineProfile(this)">Save Setup</button>
             </div>
-            <div class="summary-pill">
-                <small>Purpose</small>
-                <strong>{{ ex.purpose }}</strong>
+
+            <div class="machine-profile-grid">
+                <input placeholder="Seat position" data-profile-field="seat_position" value="{{ ex.profile.seat_position or '' }}">
+                <input placeholder="Cable height" data-profile-field="cable_height" value="{{ ex.profile.cable_height or '' }}">
+                <input placeholder="Backrest position" data-profile-field="backrest_position" value="{{ ex.profile.backrest_position or '' }}">
+                <input placeholder="Handle attachment" data-profile-field="handle_attachment" value="{{ ex.profile.handle_attachment or '' }}">
+                <input placeholder="Foot position" data-profile-field="foot_position" value="{{ ex.profile.foot_position or '' }}">
+                <textarea placeholder="Setup notes" data-profile-field="notes">{{ ex.profile.notes or '' }}</textarea>
             </div>
         </div>
-
-        <div class="recommendation {{ ex.recommendation.status }}">
-            <strong>TRIAD Recommendation</strong>
-            <p>{{ ex.recommendation.message }}</p>
-        </div>
-
-        <div class="exercise-meta">
-            <p><strong>Coaching cue:</strong> {{ ex.cue }}</p>
-        </div>
-
-        {% if ex.video %}
-        <a class="video-button" href="{{ ex.video }}" target="_blank">Watch technique video</a>
-        {% endif %}
-
-        {% if ex.mistakes %}
-        <div class="mistakes">
-            <strong>Common mistakes:</strong>
-            <ul>
-                {% for mistake in ex.mistakes %}
-                <li>{{ mistake }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
 
         {% if ex.history %}
-        <div class="history-box">
-            {% if ex.previous_summary %}
-            <div class="previous-summary">
-                <strong>Previous session summary</strong>
-                <div class="previous-summary-grid">
-                    <span><small>Date</small>{{ ex.previous_summary.date }}</span>
-                    <span><small>Best weight</small>{{ ex.previous_summary.best_weight }}</span>
-                    <span><small>Sets</small>{{ ex.previous_summary.total_sets }}</span>
-                    <span><small>Avg reps</small>{{ ex.previous_summary.avg_reps }}</span>
-                    <span><small>Avg RPE</small>{{ ex.previous_summary.avg_rpe }}</span>
-                </div>
-            </div>
-            {% endif %}
-            <strong>Recent history</strong>
+        <details class="history-box">
+            <summary>Recent history</summary>
             <div class="history-table-wrap">
                 <table class="history-table">
                     <thead>
                         <tr>
                             <th>Date</th>
                             <th>Set</th>
-                            <th>Weight</th>
-                            <th>Reps</th>
+                            <th>Details</th>
                             <th>RPE</th>
                         </tr>
                     </thead>
@@ -113,15 +138,19 @@
                         <tr>
                             <td>{{ h.created_at[:10] }}</td>
                             <td>{{ h.set_no }}</td>
-                            <td>{{ h.weight }}</td>
-                            <td>{{ h.reps }}</td>
+                            <td>
+                                {% if h.weight %}<span>{{ h.weight }}</span>{% endif %}
+                                {% if h.reps %}<span>{{ h.reps }} reps</span>{% endif %}
+                                {% if h.duration %}<span>{{ h.duration }} sec</span>{% endif %}
+                                {% if h.distance %}<span>{{ h.distance }}</span>{% endif %}
+                            </td>
                             <td>{{ h.rpe }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </div>
+        </details>
         {% else %}
         <div class="history-box empty-history">
             <strong>No previous history yet</strong>
@@ -131,18 +160,29 @@
 
         <div class="set-grid">
             {% for set_no in range(1, ex.sets + 1) %}
+            {% set draft = ex.draft_sets[set_no] %}
             <div class="set-box">
                 <h3>Set {{ set_no }}</h3>
-                <input placeholder="Weight" data-field="weight">
-                <input placeholder="Reps" data-field="reps">
-                <input placeholder="RPE" data-field="rpe">
-                <textarea placeholder="Notes" data-field="notes"></textarea>
+                {% if ex.input_placeholders.weight %}
+                <input placeholder="{{ ex.input_placeholders.weight }}" data-field="weight" value="{{ draft.weight or '' }}">
+                {% endif %}
+                {% if ex.input_placeholders.reps %}
+                <input placeholder="{{ ex.input_placeholders.reps }}" data-field="reps" value="{{ draft.reps or '' }}">
+                {% endif %}
+                {% if ex.input_placeholders.duration %}
+                <input placeholder="{{ ex.input_placeholders.duration }}" data-field="duration" value="{{ draft.duration or '' }}">
+                {% endif %}
+                {% if ex.input_placeholders.distance %}
+                <input placeholder="{{ ex.input_placeholders.distance }}" data-field="distance" value="{{ draft.distance or '' }}">
+                {% endif %}
+                <input placeholder="{{ ex.input_placeholders.rpe }}" data-field="rpe" value="{{ draft.rpe or '' }}">
+                <textarea placeholder="{{ ex.input_placeholders.notes }}" data-field="notes">{{ draft.notes or '' }}</textarea>
                 <button
                     data-session="{{ selected_session }}"
                     data-exercise="{{ ex.name }}"
                     data-set="{{ set_no }}"
                     onclick="saveSet(this)">
-                    Save Set
+                    {% if draft.updated_at %}Update Draft{% else %}Save Draft{% endif %}
                 </button>
             </div>
             {% endfor %}
@@ -150,6 +190,12 @@
     </section>
     {% endfor %}
 </div>
+
+<section class="bottom-post-panel">
+    <button class="post-workout-button" data-session="{{ selected_session }}" onclick="postWorkout(this)">
+        Post Workout
+    </button>
+</section>
 {% endblock %}
 
 {% block scripts %}

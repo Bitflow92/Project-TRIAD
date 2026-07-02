@@ -8,6 +8,42 @@ The project follows the principles of semantic release documentation.
 
 ---
 
+# Release 2.7
+
+## Added
+
+- Timed, loaded carry, bodyweight and standard exercise type support
+- Editable workout draft mode with explicit Post Workout action
+- Duplicate draft protection with user/session/exercise/set upserts
+- User-specific machine setup profiles per exercise
+- Duration and distance fields for workout logs and CSV export
+- Exercise numbering and compact machine setup display
+- Release 2.7 machine photography assets
+
+## Changed
+
+- Redesigned workout exercise cards with photo/coaching layout
+- Renamed Seated Cable Row to Low Row Machine while preserving historical lookup
+- Updated conservative recommendations for timed exercises and loaded carries
+- Improved workout log display for weight, reps, duration and distance
+- Added separate admin draft clearing without deleting posted logs or machine profiles
+
+---
+
+# Release 2.6
+
+## Added
+
+- Multi-user authentication for Rynier and Wietz
+- Individual athlete data separation
+- Rynier-only admin access
+
+## Changed
+
+- Docker Compose uses `.env` for deployment secrets
+
+---
+
 # Release 2.5
 
 ## Added

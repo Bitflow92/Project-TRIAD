@@ -2,9 +2,9 @@
 
 ## Release Notes
 
-Current Release: **2.5**
+Current Release: **2.7**
 
-Release Date: June 2026
+Release Date: July 2026
 
 Status: Stable
 
@@ -12,146 +12,75 @@ Status: Stable
 
 # Overview
 
-Release 2.5 marks the completion of the Project TRIAD platform foundation.
+Release 2.7 improves the in-gym workout experience by making logging safer, more flexible and more coaching-aware.
 
-The application has evolved from a simple static gym programme into a self-hosted coaching platform featuring workout logging, progress tracking, intelligent progression recommendations, administration tools and a modern Docker-based deployment workflow.
-
-This release establishes the technical foundation upon which future endurance coaching, analytics and AI features will be built.
+The workout screen now supports exercise-specific inputs, editable workout drafts, machine setup memory and improved exercise photography while preserving the Release 2.6 multi-user authentication and Rynier-only administration model.
 
 ---
 
 # What's New
 
-## Coaching Dashboard
+## Workout Draft Mode
 
-- Modern landing dashboard
-- Session A / B / C navigation
-- Mobile-friendly interface
-- Improved visual design
+- Saving a set now stores an editable draft instead of immediately posting to the permanent log.
+- Drafts are user-specific and session-specific.
+- Saving the same set again updates the draft row instead of creating duplicates.
+- The new **Post Workout** action writes completed draft sets to permanent history and clears the draft.
+- Partially completed workouts are supported.
 
-## Workout Logging
+## Exercise Type Support
 
-- Record every exercise session
-- Store weights, repetitions and notes
-- Persistent SQLite database
+- Standard exercises use weight, reps, RPE and notes.
+- Timed exercises use duration, RPE and notes.
+- Loaded carries use weight, distance/time, RPE and notes.
+- The permanent log and CSV export now support duration and distance fields.
 
-## Progress Intelligence
+## Machine Profiles
 
-- Previous performance displayed
-- Personal Best tracking
-- Conservative progression recommendations
-- Historical workout review
+- Each athlete can save machine setup notes per exercise.
+- Setup fields include seat position, cable height, backrest, handle attachment, foot position and notes.
+- Saved setup appears automatically on the relevant exercise card.
 
-## Exercise Library
+## Exercise Card Redesign
 
-Each exercise now includes:
+- Exercise cards now show numbered exercise titles in workout order.
+- Desktop and tablet layouts use a photo-plus-coaching split.
+- Mobile layouts stack photo, coaching, machine setup and draft inputs.
+- Release 2.7 photography assets were added for key machine exercises.
 
-- Machine photographs
-- Primary purpose
-- Coaching cue
-- Common mistakes
-- Video reference links
+## Coaching Intelligence
+
+- Timed exercise recommendations remain conservative and focus on repeating duration until RPE improves.
+- Loaded carry recommendations avoid aggressive progression and account for distance/time variability.
+- Existing conservative progression logic remains in place for standard exercises.
 
 ## Administration
 
-Administrator tools include:
-
-- CSV export
-- SQLite database download
-- Workout history
-- Database maintenance
-- Clear workout log
-
-## Infrastructure
-
-Major improvements include:
-
-- Dockerized deployment
-- Caddy reverse proxy
-- SQLite persistence
-- Automated deployment script
-- Automated rollback script
-- GitHub-managed source control
-- VPS deployment workflow
-
----
-
-# Current Platform
-
-Live Platform
-
-https://triad.bitflow92.co.za
-
-Project Website
-
-https://bitflow92.github.io/Project-TRIAD/
-
----
-
-# Technology
-
-- Python
-- Flask
-- SQLite
-- Docker
-- Caddy
-- GitHub
-- GitHub Pages
-- Codex
-- ChatGPT
-
----
-
-# Known Limitations
-
-The following functionality is planned but not yet implemented.
-
-- Athlete profile
-- Swim training
-- Cycling training
-- Running training
-- Nutrition tracking
-- Recovery dashboard
-- Performance analytics
-- Garmin integration
-- AI coaching
-- n8n automation
+- CSV export includes the new exercise order, exercise type, duration and distance fields.
+- Workout history clearing still only clears permanent logs.
+- Draft clearing is available as a separate admin action.
+- Machine profiles are not deleted by workout history or draft clear actions.
 
 ---
 
 # Upgrade Notes
 
-No manual upgrade steps are required.
+No manual migration command is required. On startup, the Flask app safely adds compatible columns to `exercise_logs` and creates the `workout_drafts` and `machine_profiles` tables if they do not already exist.
 
-Deployment consists of:
+Deployment remains:
 
 ```
 git pull
 ./platform/deploy.sh
 ```
 
-The deployment script automatically:
-
-- updates the application
-- rebuilds the Docker image
-- restarts the container
-- performs a health check
-
 ---
 
-# Next Release
+# Known Limitations
 
-Release 2.6
-
-Project Website
-
-Focus areas include:
-
-- Professional GitHub Pages landing page
-- Public project presentation
-- Better onboarding experience
-- Improved branding
-- Documentation improvements
+- Timed exercise progression intentionally remains conservative in Release 2.7.
+- Machine setup fields are free text to match real gym equipment variability.
+- Historical Seated Cable Row entries are still used for history and recommendations, while new entries use Low Row Machine.
 
 ---
 

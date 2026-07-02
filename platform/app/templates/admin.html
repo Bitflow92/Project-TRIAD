@@ -12,6 +12,12 @@
 </div>
 {% endif %}
 
+{% if drafts_cleared %}
+<div class="admin-notice">
+    Workout drafts cleared. Permanent workout history and machine profiles were left in place.
+</div>
+{% endif %}
+
 <section class="admin-stats">
     <div class="admin-stat">
         <small>Total workout entries</small>
@@ -28,6 +34,11 @@
     <div class="admin-stat">
         <small>Database size</small>
         <strong>{{ db_size_kb }} KB</strong>
+    </div>
+    <div class="admin-stat">
+        <small>Draft sets</small>
+        <strong>{{ draft_stats.total_drafts }}</strong>
+        <span>{{ draft_stats.active_sessions }} active user/session drafts</span>
     </div>
 </section>
 
@@ -53,6 +64,18 @@
                 <span>I understand this will delete all workout log entries.</span>
             </label>
             <button class="danger-button" type="submit">Clear workout history</button>
+        </form>
+    </div>
+
+    <div class="admin-panel danger-panel">
+        <h2>Clear Workout Drafts</h2>
+        <p>This deletes unposted draft sets only. Permanent logs and machine profiles are preserved.</p>
+        <form method="post" action="/admin/clear-drafts">
+            <label class="confirm-clear">
+                <input type="checkbox" name="confirm_clear_drafts" value="yes">
+                <span>I understand this will delete all unposted workout draft entries.</span>
+            </label>
+            <button class="danger-button" type="submit">Clear workout drafts</button>
         </form>
     </div>
 </section>
