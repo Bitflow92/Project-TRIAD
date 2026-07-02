@@ -167,3 +167,84 @@ At the beginning of every release planning discussion, provide the latest versio
 # Notes
 
 Release 2.7 should be driven by real training feedback before implementation.
+
+
+---
+
+# Session B Feedback
+
+## Date
+2026-07-01
+
+## Summary
+Second real training session and first execution of Session B.
+
+Purpose:
+- Establish lower-body working weights
+- Evaluate the new Lat Pulldown exercise
+- Validate progression philosophy
+- Continue refining TRIAD using real training feedback
+
+## Coaching Observations
+
+### Lat Pulldown
+- Excellent baseline.
+- Increase slightly next session (42.5–45 kg depending on machine increments).
+
+### Deadlift Machine
+- Repeat 40 kg.
+
+### Leg Press
+- Standardise at 80 kg for all working sets.
+
+### Hack Squat
+- Maintain 10 kg while prioritising depth and technique.
+
+### Leg Curl
+- Repeat 40 kg.
+- Remember:
+  - Seat position 6
+  - Arm position 2
+
+### Standing Calf Raise
+- Consider a small increase to approximately 70 kg.
+
+### Hip Thrust
+- Repeat current load.
+
+### Farmer's Carry
+- Increase load until final effort reaches approximately RPE 8–9.
+
+### Core
+- Confirms the need for dedicated timed exercise support.
+
+## New High Priority Enhancements
+
+### Workout Draft Mode
+
+Current issue:
+Workout sets are immediately written to the permanent workout log, making accidental entries difficult to correct.
+
+Proposed workflow:
+- Exercise form starts blank.
+- User enters sets and presses Save.
+- Saved values remain visible and editable.
+- Pressing Save again updates the draft instead of creating duplicate records.
+- A new Post Workout button commits all exercises to the permanent workout log.
+- Draft data is then cleared.
+
+Benefits:
+- Prevents accidental duplicate entries.
+- Supports corrections during training.
+- Allows partially completed workouts.
+- Separates active workouts from completed history.
+
+### Duplicate Entry Protection
+
+Prevent multiple saves caused by accidental repeated taps.
+
+## Additional Observations
+
+- Pulling strength continues to exceed pressing strength.
+- Conservative progression remains appropriate.
+- Machine setup information should become a dedicated feature rather than relying on notes.
